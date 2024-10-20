@@ -1,44 +1,61 @@
 #### Preamble ####
-# Purpose: Cleans the raw plane data recorded by two observers..... [...UPDATE THIS...]
-# Author: Rohan Alexander [...UPDATE THIS...]
-# Date: 6 April 2023 [...UPDATE THIS...]
-# Contact: rohan.alexander@utoronto.ca [...UPDATE THIS...]
+# Purpose: Cleans the raw poll data from FiveThirtyEight, which contains observations on the number of polls for the U.S. election.
+# Author: Shamayla Durrin Islam
+# Date: 19 October 2024
+# Contact: shamayla.islam@mil.utoronto.ca
 # License: MIT
-# Pre-requisites: [...UPDATE THIS...]
-# Any other information needed? [...UPDATE THIS...]
+# Pre-requisites: Requires raw polling data from FiveThirtyEight. Ensure tidyverse, janitor and arrow packages are installed for data saving and cleaning.
+# Any other information: This script assumes that the raw data is in CSV format and structured according to FiveThirtyEight's poll dataset.
 
-#### Workspace setup ####
+#### Workspace setup and loading data  ####
+
 library(tidyverse)
+library(janitor)
+library(arrow)
+raw_data <- read_csv("data/01-raw_data/raw_data.csv")
 
-#### Clean data ####
-raw_data <- read_csv("inputs/data/plane_data.csv")
+#### Data Cleaning ####
 
-cleaned_data <-
-  raw_data |>
-  janitor::clean_names() |>
-  select(wing_width_mm, wing_length_mm, flying_time_sec_first_timer) |>
-  filter(wing_width_mm != "caw") |>
-  mutate(
-    flying_time_sec_first_timer = if_else(flying_time_sec_first_timer == "1,35",
-                                   "1.35",
-                                   flying_time_sec_first_timer)
-  ) |>
-  mutate(wing_width_mm = if_else(wing_width_mm == "490",
-                                 "49",
-                                 wing_width_mm)) |>
-  mutate(wing_width_mm = if_else(wing_width_mm == "6",
-                                 "60",
-                                 wing_width_mm)) |>
-  mutate(
-    wing_width_mm = as.numeric(wing_width_mm),
-    wing_length_mm = as.numeric(wing_length_mm),
-    flying_time_sec_first_timer = as.numeric(flying_time_sec_first_timer)
-  ) |>
-  rename(flying_time = flying_time_sec_first_timer,
-         width = wing_width_mm,
-         length = wing_length_mm
-         ) |> 
-  tidyr::drop_na()
+# Remove duplicate rows if any 
+
+cleaned_data <- raw_data %>% distinct()
+
+# Create a new column 'poll_scope' based on whether the 'state' column is empty or not
+
+cleaned_data <- cleaned_data %>%
+  mutate(poll_scope = ifelse( is.na(state), "National", "State"))
+
+# Replace missing values (NA) in the 'state' column with NA
+
+cleaned_data <- cleaned_data %>%
+  mutate(state = ifelse(is.na(state), "Not Applicable", state))
+
+# Keep only the relevant columns
+cleaned_data <- cleaned_data %>%
+  select(poll_id, pollster_id, numeric_grade, pollscore, state, start_date, end_date, sample_size, population, candidate_name, pct)
+
+# Remove any rows that have missing values in any column
+cleaned_data <- cleaned_data %>% drop_na()
+
+# Look at the range of numeric grade to select a cutoff 
+
+numeric_grade_range <- range(cleaned_data$numeric_grade)
+
+cutoffgrade <- 1.5 # this cutoff was selected  to retain mid to high quality pollster 
+
+# Remove pollster that has low numeric grade 
+
+cleaned_data <- cleaned_data %>% filter(numeric_grade >= cutoffgrade)
+
+# Look at the range of pollscore to select a cutoff 
+
+pollscore_range <- range(cleaned_data$pollscore)
+
+cutoffscore <- 0.22 
+
+# remove observations that has high pollsore (lower reflects less error and bias)
+
+cleaned_data <- cleaned_data %>% filter(pollscore >= cutoffscore)
 
 #### Save data ####
-write_csv(cleaned_data, "outputs/data/analysis_data.csv")
+write_parquet(cleaned_data, "data/02-analysis_data/analysis_data.csv")
