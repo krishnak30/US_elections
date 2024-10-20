@@ -57,6 +57,11 @@ cutoffscore <- 0.22
 
 cleaned_data <- cleaned_data %>% filter(pollscore >= cutoffscore)
 
+#Filter the dataset to keep only rows with Kamala Harris or Donald Trump
+
+cleaned_data <- cleaned_data %>%
+  filter(candidate_name %in% c("Kamala Harris", "Donald Trump"))
+
 #### Save data ####
 
 write_parquet(cleaned_data, "data/02-analysis_data/analysis_data.parquet")
