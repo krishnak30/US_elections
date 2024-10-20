@@ -1,152 +1,101 @@
-division,state,party
-Division 1,Victoria,Liberal
-Division 2,New South Wales,Liberal
-Division 3,Tasmania,Liberal
-Division 4,New South Wales,Liberal
-Division 5,Queensland,Liberal
-Division 6,New South Wales,Labor
-Division 7,Victoria,Liberal
-Division 8,Western Australia,Labor
-Division 9,Western Australia,Greens
-Division 10,Queensland,Labor
-Division 11,Queensland,Labor
-Division 12,Northern Territory,Liberal
-Division 13,New South Wales,Labor
-Division 14,Western Australia,Labor
-Division 15,Western Australia,National
-Division 16,Victoria,Liberal
-Division 17,South Australia,Liberal
-Division 18,Victoria,Liberal
-Division 19,Western Australia,Labor
-Division 20,South Australia,Labor
-Division 21,New South Wales,Liberal
-Division 22,Queensland,Greens
-Division 23,New South Wales,Liberal
-Division 24,New South Wales,Liberal
-Division 25,Queensland,Labor
-Division 26,Victoria,National
-Division 27,New South Wales,Liberal
-Division 28,Queensland,Liberal
-Division 29,Tasmania,Liberal
-Division 30,South Australia,Liberal
-Division 31,New South Wales,Liberal
-Division 32,Victoria,Labor
-Division 33,Tasmania,Liberal
-Division 34,New South Wales,Liberal
-Division 35,Western Australia,Labor
-Division 36,New South Wales,Liberal
-Division 37,Tasmania,Greens
-Division 38,Tasmania,Labor
-Division 39,Victoria,Greens
-Division 40,South Australia,Labor
-Division 41,New South Wales,Other
-Division 42,New South Wales,Other
-Division 43,Tasmania,Labor
-Division 44,Tasmania,National
-Division 45,Queensland,Liberal
-Division 46,Australian Capital Territory,Other
-Division 47,Queensland,Labor
-Division 48,Queensland,Other
-Division 49,South Australia,Liberal
-Division 50,Victoria,National
-Division 51,South Australia,Liberal
-Division 52,Victoria,Labor
-Division 53,South Australia,National
-Division 54,Queensland,Liberal
-Division 55,Queensland,Labor
-Division 56,South Australia,Liberal
-Division 57,New South Wales,Other
-Division 58,Northern Territory,Liberal
-Division 59,New South Wales,Labor
-Division 60,Western Australia,Labor
-Division 61,New South Wales,Liberal
-Division 62,South Australia,Liberal
-Division 63,Queensland,Labor
-Division 64,Tasmania,Labor
-Division 65,South Australia,Labor
-Division 66,Victoria,Labor
-Division 67,Queensland,Liberal
-Division 68,Queensland,Liberal
-Division 69,Tasmania,Labor
-Division 70,South Australia,National
-Division 71,Australian Capital Territory,Labor
-Division 72,Western Australia,Labor
-Division 73,Queensland,National
-Division 74,Victoria,Labor
-Division 75,Western Australia,Labor
-Division 76,Tasmania,Labor
-Division 77,Queensland,Liberal
-Division 78,Western Australia,Liberal
-Division 79,Queensland,Labor
-Division 80,Queensland,Liberal
-Division 81,Victoria,Labor
-Division 82,New South Wales,Liberal
-Division 83,Victoria,Liberal
-Division 84,Queensland,National
-Division 85,Western Australia,Liberal
-Division 86,New South Wales,Labor
-Division 87,Queensland,Liberal
-Division 88,New South Wales,Liberal
-Division 89,Tasmania,Liberal
-Division 90,South Australia,Labor
-Division 91,Victoria,Liberal
-Division 92,New South Wales,Labor
-Division 93,Tasmania,Labor
-Division 94,South Australia,Labor
-Division 95,Victoria,Liberal
-Division 96,Victoria,Labor
-Division 97,Western Australia,Liberal
-Division 98,Queensland,Liberal
-Division 99,South Australia,Liberal
-Division 100,New South Wales,Labor
-Division 101,South Australia,Labor
-Division 102,New South Wales,Labor
-Division 103,Victoria,Labor
-Division 104,Victoria,Labor
-Division 105,South Australia,Other
-Division 106,Western Australia,Labor
-Division 107,Tasmania,Liberal
-Division 108,Victoria,Labor
-Division 109,Queensland,Liberal
-Division 110,Victoria,Labor
-Division 111,Australian Capital Territory,Labor
-Division 112,Victoria,Liberal
-Division 113,Victoria,Liberal
-Division 114,Victoria,Liberal
-Division 115,Tasmania,Labor
-Division 116,Victoria,Labor
-Division 117,New South Wales,Labor
-Division 118,Victoria,Labor
-Division 119,Victoria,Greens
-Division 120,Northern Territory,Labor
-Division 121,South Australia,Liberal
-Division 122,New South Wales,Liberal
-Division 123,New South Wales,Labor
-Division 124,New South Wales,Liberal
-Division 125,New South Wales,National
-Division 126,New South Wales,Labor
-Division 127,Queensland,Labor
-Division 128,New South Wales,Other
-Division 129,Queensland,Labor
-Division 130,Australian Capital Territory,Liberal
-Division 131,Tasmania,Greens
-Division 132,New South Wales,National
-Division 133,New South Wales,Labor
-Division 134,Northern Territory,Labor
-Division 135,South Australia,National
-Division 136,Victoria,Labor
-Division 137,Tasmania,National
-Division 138,South Australia,Liberal
-Division 139,New South Wales,Labor
-Division 140,Victoria,Other
-Division 141,Queensland,Greens
-Division 142,Victoria,National
-Division 143,Western Australia,Labor
-Division 144,Victoria,Labor
-Division 145,Queensland,Liberal
-Division 146,Tasmania,Liberal
-Division 147,South Australia,Liberal
-Division 148,Victoria,Labor
-Division 149,New South Wales,National
-Division 150,New South Wales,Labor
-Division 151,Victoria,Liberal
+poll_id,pollster_id,numeric_grade,pollscore,methodology,state,start_date,end_date,sample_size,population,candidate_name,pct
+773,38,7.64,-0.36,In-Person,Oregon,2024-07-05,2024-07-12,1900,likely voters,Other,56
+101,10,4.2,0.26,Online,Georgia,2024-04-04,2024-04-07,1627,likely voters,Kamala Harris,67.4
+170,84,4.48,-0.05,Hybrid,Missouri,2024-09-20,2024-09-23,167,likely voters,Kamala Harris,61.8
+462,17,2.71,0.73,Online,Tennessee,2024-03-29,2024-04-01,266,likely voters,Kamala Harris,49.7
+376,11,5.52,0.7,Online,Missouri,2024-01-18,2024-01-20,1566,likely voters,Other,34.2
+73,83,6.24,-0.63,Online,Washington,2024-05-31,2024-06-01,947,registered voters,Kamala Harris,59.4
+165,60,3.02,-0.67,In-Person,Washington,2024-01-03,2024-01-06,1285,registered voters,Other,58.4
+21,37,5.79,-0.73,Hybrid,Missouri,2024-10-02,2024-10-06,238,registered voters,Donald Trump,50.7
+921,25,9.5,0.19,Hybrid,Florida,2024-10-04,2024-10-06,2181,registered voters,Donald Trump,52
+408,44,3.11,0.63,Online,Ohio,2024-07-29,2024-08-04,674,likely voters,Other,63.6
+425,26,8.57,-0.78,Hybrid,Alaska,2024-02-21,2024-02-27,2499,registered voters,Kamala Harris,52.8
+861,7,6.57,0.82,Hybrid,Rhode Island,2024-01-19,2024-01-21,1615,likely voters,Kamala Harris,31.8
+608,64,3.96,0.98,In-Person,Texas,2024-07-16,2024-07-18,275,registered voters,Other,68.1
+572,82,2.56,0.84,Online,Rhode Island,2024-06-14,2024-06-16,2155,likely voters,Donald Trump,55.6
+661,73,3.75,-0.93,In-Person,New Hampshire,2024-09-29,2024-10-05,2852,registered voters,Other,46
+807,61,5.17,0.85,In-Person,Indiana,2024-10-09,2024-10-12,419,registered voters,Kamala Harris,46.7
+105,50,9.49,0.87,Online,Washington,2024-01-31,2024-02-06,2171,likely voters,Kamala Harris,53.5
+593,83,9.51,-0.7,Online,Massachusetts,2024-07-20,2024-07-23,397,registered voters,Donald Trump,44.5
+181,37,1.42,-0.19,In-Person,Connecticut,2024-05-23,2024-05-26,1071,registered voters,Kamala Harris,59.3
+65,96,6.56,0.11,In-Person,Pennsylvania,2024-05-25,2024-05-31,2822,likely voters,Other,33.7
+886,55,7.99,0.58,Hybrid,Massachusetts,2024-07-26,2024-08-02,666,likely voters,Donald Trump,57.8
+96,24,2.8,0.17,Hybrid,North Carolina,2024-05-15,2024-05-21,1864,likely voters,Other,38.9
+788,25,4.77,-0.06,Online,Montana,2024-05-10,2024-05-12,2641,registered voters,Donald Trump,40.9
+7,60,3.93,-0.79,Online,Wisconsin,2024-04-20,2024-04-24,2891,likely voters,Donald Trump,60.8
+670,39,6.61,-0.21,In-Person,Massachusetts,2024-03-11,2024-03-18,1898,likely voters,Kamala Harris,30.9
+375,92,5.05,-0.93,In-Person,Oregon,2024-07-21,2024-07-27,2634,registered voters,Donald Trump,37.7
+310,33,1.06,-0.1,Hybrid,Indiana,2024-10-03,2024-10-05,2373,registered voters,Kamala Harris,47.9
+487,32,6.02,0.75,In-Person,Kansas,2024-05-20,2024-05-21,2577,likely voters,Kamala Harris,34.5
+540,23,7.47,0.37,Hybrid,Rhode Island,2024-04-03,2024-04-09,1807,registered voters,Donald Trump,52
+412,49,5.28,-0.92,In-Person,Minnesota,2024-07-16,2024-07-19,2823,registered voters,Donald Trump,64.4
+930,90,8.71,0.33,In-Person,Minnesota,2024-03-20,2024-03-23,2112,likely voters,Donald Trump,45.4
+877,29,3.34,0.89,Online,Mississippi,2024-07-16,2024-07-22,2009,registered voters,Kamala Harris,33.5
+61,49,5.18,0.18,Hybrid,Hawaii,2024-02-01,2024-02-04,2836,likely voters,Kamala Harris,41.2
+616,67,3.49,0.43,Hybrid,Tennessee,2024-09-26,2024-10-03,1276,likely voters,Kamala Harris,41.5
+96,93,8.19,0.86,Hybrid,Louisiana,2024-04-15,2024-04-22,1143,registered voters,Other,49.2
+982,44,8.02,0.47,Hybrid,Connecticut,2024-03-17,2024-03-20,265,likely voters,Kamala Harris,47.7
+320,86,4.06,0.49,Hybrid,Nebraska,2024-01-31,2024-02-04,760,likely voters,Donald Trump,48.9
+985,84,6,-0.13,In-Person,Washington,2024-03-31,2024-04-06,2015,registered voters,Donald Trump,56.8
+466,32,4.73,0.94,In-Person,Rhode Island,2024-07-09,2024-07-15,1950,registered voters,Kamala Harris,41
+258,76,3.09,-0.98,Online,Colorado,2024-10-10,2024-10-13,761,likely voters,Other,52
+470,10,4.17,0.91,In-Person,North Carolina,2024-04-07,2024-04-12,1340,registered voters,Other,61.8
+358,86,9.41,0.04,Hybrid,Florida,2024-07-30,2024-08-02,1317,likely voters,Donald Trump,38.8
+724,98,2.3,-0.39,Online,Maryland,2024-07-18,2024-07-24,2193,registered voters,Kamala Harris,54.8
+856,60,4.62,0.33,Hybrid,Nebraska,2024-02-05,2024-02-07,1231,registered voters,Kamala Harris,68.3
+654,70,5.73,-0.2,In-Person,Kentucky,2024-02-27,2024-02-29,525,registered voters,Donald Trump,59.1
+71,59,4.36,-0.05,In-Person,Indiana,2024-09-29,2024-10-04,2898,likely voters,Donald Trump,64.1
+338,3,2.09,0.37,In-Person,Florida,2024-03-11,2024-03-12,2763,likely voters,Donald Trump,65.2
+502,15,7.09,0.52,Online,Illinois,2024-10-05,2024-10-07,2363,registered voters,Other,42.8
+475,11,7.29,0.99,In-Person,South Carolina,2024-06-10,2024-06-15,251,likely voters,Other,33.8
+990,7,3.15,-0.98,In-Person,Delaware,2024-05-14,2024-05-17,2642,likely voters,Other,44.1
+418,46,1.71,-0.1,In-Person,Michigan,2024-03-23,2024-03-24,1480,registered voters,Other,46.9
+692,40,6.98,-0.27,Hybrid,Idaho,2024-05-18,2024-05-23,1187,registered voters,Kamala Harris,49.5
+64,58,6.66,0.26,Hybrid,Tennessee,2024-03-12,2024-03-16,2983,registered voters,Other,55.1
+734,97,3.48,-0.86,Hybrid,Missouri,2024-02-19,2024-02-22,1073,registered voters,Donald Trump,42.1
+167,77,4.84,-0.49,In-Person,New York,2024-04-10,2024-04-15,1666,likely voters,Donald Trump,41
+950,54,9.05,-0.37,Hybrid,Iowa,2024-02-07,2024-02-11,1763,registered voters,Donald Trump,69.6
+592,98,8.88,0.1,Hybrid,Iowa,2024-07-10,2024-07-15,1486,likely voters,Other,58.1
+16,73,6.11,0.59,In-Person,Colorado,2024-03-28,2024-04-03,1711,likely voters,Other,43.2
+44,8,2.75,0.35,Online,Arizona,2024-01-21,2024-01-26,2601,registered voters,Kamala Harris,60.3
+456,37,3.77,0.34,Online,Rhode Island,2024-07-18,2024-07-25,1720,registered voters,Other,33.9
+364,24,9.16,-0.89,In-Person,Arizona,2024-04-02,2024-04-09,2978,likely voters,Other,31.8
+889,87,7.25,0.59,Hybrid,Maryland,2024-04-13,2024-04-17,2184,registered voters,Donald Trump,65.5
+304,31,8.47,-0.26,Online,Montana,2024-05-24,2024-05-26,1828,registered voters,Kamala Harris,43
+699,37,2.64,-0.84,Online,Rhode Island,2024-09-19,2024-09-26,2559,likely voters,Donald Trump,54.4
+520,91,6.02,0.26,Hybrid,Nevada,2024-06-20,2024-06-24,1940,likely voters,Kamala Harris,42.7
+506,44,5.06,-0.78,Hybrid,Kansas,2024-09-13,2024-09-20,2896,registered voters,Kamala Harris,46.3
+846,19,1.12,0.88,In-Person,California,2024-06-23,2024-06-24,1636,likely voters,Kamala Harris,41.2
+642,61,3.74,-0.92,In-Person,Colorado,2024-09-11,2024-09-17,2358,likely voters,Other,63.8
+209,41,1.54,0.86,In-Person,Illinois,2024-07-08,2024-07-15,1554,likely voters,Kamala Harris,46.5
+187,22,6.51,-0.85,Hybrid,Missouri,2024-07-21,2024-07-22,2031,likely voters,Other,45.6
+453,54,3.52,-0.95,Online,Oklahoma,2024-05-13,2024-05-20,1894,registered voters,Other,60.3
+444,3,8.3,-0.71,In-Person,Colorado,2024-03-19,2024-03-22,2084,registered voters,Donald Trump,30.8
+84,56,1.25,-0.1,Hybrid,Vermont,2024-03-12,2024-03-14,1124,likely voters,Other,61.3
+504,40,2.77,0.84,Online,Minnesota,2024-07-04,2024-07-07,1238,likely voters,Other,65.9
+719,10,1.5,0.53,Hybrid,Connecticut,2024-03-20,2024-03-27,1250,likely voters,Kamala Harris,63.8
+204,42,8.54,0.08,Online,Massachusetts,2024-04-24,2024-04-30,2819,likely voters,Other,45.8
+805,26,3.51,-0.22,Online,South Dakota,2024-08-31,2024-09-02,2471,registered voters,Other,54.1
+884,20,5.16,0.81,Online,Arkansas,2024-09-21,2024-09-26,2049,likely voters,Other,34.4
+125,52,7.97,-0.38,Online,Nebraska,2024-05-17,2024-05-21,2959,registered voters,Other,38.7
+24,70,2.15,0.43,Hybrid,Arizona,2024-01-30,2024-02-04,421,registered voters,Kamala Harris,54
+646,57,6.45,0.63,Hybrid,Nevada,2024-04-06,2024-04-08,1379,likely voters,Donald Trump,34
+885,33,4.67,-0.88,Hybrid,Kentucky,2024-02-09,2024-02-13,1312,likely voters,Donald Trump,50.6
+587,8,3.52,-0.7,In-Person,Kansas,2024-01-04,2024-01-08,408,registered voters,Other,36.8
+228,45,3.92,0.77,Hybrid,Montana,2024-10-15,2024-10-20,2978,registered voters,Kamala Harris,64
+420,84,1.66,0.11,Hybrid,Wisconsin,2024-09-14,2024-09-18,435,registered voters,Kamala Harris,66.8
+994,72,2.15,0.2,In-Person,West Virginia,2024-04-28,2024-05-04,2004,likely voters,Other,44.7
+782,33,3.5,0.98,Online,Kansas,2024-09-03,2024-09-06,1708,registered voters,Kamala Harris,61.9
+785,36,2.78,-0.66,Online,Rhode Island,2024-01-10,2024-01-11,963,registered voters,Donald Trump,57.5
+874,69,1.61,-0.52,Online,Minnesota,2024-07-27,2024-07-31,740,registered voters,Other,33.2
+25,80,9.34,0.24,Online,New York,2024-03-02,2024-03-05,1725,registered voters,Kamala Harris,45.3
+786,69,5.39,-0.79,Online,Montana,2024-08-31,2024-09-02,2679,registered voters,Kamala Harris,63.9
+893,93,4.11,0.22,Hybrid,Ohio,2024-02-16,2024-02-21,1556,registered voters,Other,65.2
+705,63,5.96,0.01,Online,Texas,2024-04-22,2024-04-28,2022,likely voters,Other,62.2
+122,60,4.77,-0.2,Hybrid,Colorado,2024-04-10,2024-04-17,2185,registered voters,Kamala Harris,58.5
+251,63,4.93,0.03,Hybrid,Virginia,2024-03-20,2024-03-24,1642,likely voters,Kamala Harris,56.9
+595,20,5.65,0.89,Online,Montana,2024-05-26,2024-05-28,1720,likely voters,Other,50.6
+979,44,6.23,-0.73,In-Person,Connecticut,2024-05-10,2024-05-16,1702,registered voters,Donald Trump,48.7
+337,30,8.29,-0.72,Online,Nevada,2024-10-14,2024-10-17,1660,likely voters,Donald Trump,30.4
+834,12,8.73,-0.43,In-Person,Alabama,2024-06-30,2024-07-06,2540,registered voters,Other,50.3
+324,8,4.37,0.47,Hybrid,Vermont,2024-03-10,2024-03-12,2595,likely voters,Other,67.3
