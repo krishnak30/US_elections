@@ -95,4 +95,4 @@ simulated_data <- tibble(
 
 head(simulated_data, 20)
 
-write.csv(simulated_data, file = "data/00-simulated_data/simulated_data.csv", row.names = FALSE)
+write.csv(simulated_data, file = "data/00-simulated_data/simulated_data.csv")
