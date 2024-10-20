@@ -58,4 +58,5 @@ cutoffscore <- 0.22
 cleaned_data <- cleaned_data %>% filter(pollscore >= cutoffscore)
 
 #### Save data ####
-write_parquet(cleaned_data, "data/02-analysis_data/analysis_data.csv")
+
+write_parquet(cleaned_data, "data/02-analysis_data/analysis_data.parquet")
