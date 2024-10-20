@@ -22,7 +22,6 @@ library(tidyverse)
 library(palmerpenguins)
 ```
 
-
 # Introduction
 
 Overview paragraph
@@ -35,11 +34,6 @@ Why it matters paragraph
 
 Telegraphing paragraph: The remainder of this paper is structured as follows. @sec-data....
 
-
-
-
-
-
 # Data {#sec-data}
 
 ## Overview
@@ -49,14 +43,12 @@ We use the statistical programming language R [@citeR].... Our data [@shelter]..
 Overview text
 
 ## Measurement
-	
+
 Some paragraphs about how we go from a phenomena in the world to an entry in the dataset.
 
 ## Outcome variables
 
 Add graphs, tables and text. Use sub-sub-headings for each outcome variable or update the subheading to be singular.
-
-
 
 Some of our data is of penguins (@fig-bills), from @palmerpenguins.
 
@@ -95,20 +87,13 @@ analysis_data |>
        y = "Wing length (mm)")
 ```
 
-Talk way more about it. 
+Talk way more about it.
 
 ## Predictor variables
 
 Add graphs, tables and text.
 
 Use sub-sub-headings for each outcome variable and feel free to combine a few into one if they go together naturally.
-
-
-
-
-
-
-
 
 # Model
 
@@ -118,8 +103,9 @@ Here we briefly describe the Bayesian analysis model used to investigate... Back
 
 ## Model set-up
 
-Define $y_i$ as the number of seconds that the plane remained aloft. Then $\beta_i$ is the wing width and $\gamma_i$ is the wing length, both measured in millimeters.  
+Define $y_i$ as the number of seconds that the plane remained aloft. Then $\beta_i$ is the wing width and $\gamma_i$ is the wing length, both measured in millimeters.
 
+```{=tex}
 \begin{align} 
 y_i|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
 \mu_i &= \alpha + \beta_i + \gamma_i\\
@@ -128,16 +114,14 @@ y_i|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
 \gamma &\sim \mbox{Normal}(0, 2.5) \\
 \sigma &\sim \mbox{Exponential}(1)
 \end{align}
-
+```
 We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`.
-
 
 ### Model justification
 
 We expect a positive relationship between the size of the wings and time spent aloft. In particular...
 
 We can use maths by including latex between dollar signs, for instance $\theta$.
-
 
 # Results
 
@@ -171,14 +155,11 @@ modelsummary::modelsummary(
 )
 ```
 
-
-
-
 # Discussion
 
 ## First discussion point {#sec-first-point}
 
-If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this. 
+If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this.
 
 ## Second discussion point
 
@@ -194,66 +175,10 @@ Weaknesses and next steps should also be included.
 
 \appendix
 
-# Appendix {-}
+# Appendix {.unnumbered}
 
+# Pollster
 
-# Additional data details
-
-# Model details {#sec-model-details}
-
-## Posterior predictive check
-
-In @fig-ppcheckandposteriorvsprior-1 we implement a posterior predictive check. This shows...
-
-In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. This shows... 
-
-```{r}
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| label: fig-ppcheckandposteriorvsprior
-#| layout-ncol: 2
-#| fig-cap: "Examining how the model fits, and is affected by, the data"
-#| fig-subcap: ["Posterior prediction check", "Comparing the posterior with the prior"]
-
-pp_check(first_model) +
-  theme_classic() +
-  theme(legend.position = "bottom")
-
-posterior_vs_prior(first_model) +
-  theme_minimal() +
-  scale_color_brewer(palette = "Set1") +
-  theme(legend.position = "bottom") +
-  coord_flip()
-```
-
-## Diagnostics
-
-@fig-stanareyouokay-1 is a trace plot. It shows... This suggests...
-
-@fig-stanareyouokay-2 is a Rhat plot. It shows... This suggests...
-
-```{r}
-#| echo: false
-#| eval: true
-#| message: false
-#| warning: false
-#| label: fig-stanareyouokay
-#| fig-cap: "Checking the convergence of the MCMC algorithm"
-#| fig-subcap: ["Trace plot", "Rhat plot"]
-#| layout-ncol: 2
-
-plot(first_model, "trace")
-
-plot(first_model, "rhat")
-```
-
-
-
-\newpage
-
+# Idealized Methodology
 
 # References
-
-
