@@ -64,8 +64,15 @@ cleaned_data <- cleaned_data %>%
   filter(candidate_name %in% c("Kamala Harris", "Donald Trump"))
 
 # Ensure the start_date and end_date columns are in date format
-cleaned_data$start_date <- as.Date(cleaned_data$start_date, format = "%m/%d/%y")
-cleaned_data$end_date <- as.Date(cleaned_data$end_date, format = "%m/%d/%y")
+cleaned_data <- cleaned_data %>%
+  mutate(
+    start_date = parse_date_time(start_date, orders = c("mdy", "ymd")),
+    end_date = parse_date_time(end_date, orders = c("mdy", "ymd"))
+  )
+
+# Ensure that end_date is a Date object
+
+cleaned_data$end_date <- as.Date(cleaned_data$end_date)
 
 # Create a new column to calculate the recency of a poll 
 
