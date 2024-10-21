@@ -32,7 +32,7 @@ cleaned_data <- cleaned_data %>%
 
 # Keep only the relevant columns
 cleaned_data <- cleaned_data %>%
-  select(poll_id, pollster_id, pollster, numeric_grade, pollscore, state, start_date, end_date, sample_size, population, candidate_name, pct)
+  select(poll_id, pollster_id, pollster, numeric_grade, pollscore, state, start_date, poll_scope, end_date, sample_size, population, candidate_name, pct)
 
 # Remove any rows that have missing values in any column
 cleaned_data <- cleaned_data %>% drop_na()
