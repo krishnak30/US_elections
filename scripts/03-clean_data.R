@@ -42,7 +42,7 @@ cleaned_data <- cleaned_data %>% drop_na()
 
 numeric_grade_range <- range(cleaned_data$numeric_grade)
 
-cutoffgrade <- 1.5 # this cutoff was selected  to retain mid to high quality pollster 
+cutoffgrade <- 1 # this cutoff was selected  to retain mid to high quality pollster 
 
 # Remove pollster that has low numeric grade 
 
