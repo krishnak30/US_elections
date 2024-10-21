@@ -12,6 +12,7 @@
 library(tidyverse)
 library(janitor)
 library(arrow)
+library(lubridate)
 raw_data <- read_csv("data/01-raw_data/raw_data.csv")
 
 #### Data Cleaning ####
@@ -61,6 +62,15 @@ cleaned_data <- cleaned_data %>% filter(pollscore >= cutoffscore)
 
 cleaned_data <- cleaned_data %>%
   filter(candidate_name %in% c("Kamala Harris", "Donald Trump"))
+
+# Ensure the start_date and end_date columns are in date format
+cleaned_data$start_date <- as.Date(cleaned_data$start_date, format = "%m/%d/%y")
+cleaned_data$end_date <- as.Date(cleaned_data$end_date, format = "%m/%d/%y")
+
+# Create a new column to calculate the recency of a poll 
+
+cleaned_data$recency <- as.numeric(Sys.Date() - cleaned_data$end_date)
+
 
 #### Save data ####
 
