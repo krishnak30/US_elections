@@ -48,15 +48,6 @@ cutoffgrade <- 1.5 # this cutoff was selected  to retain mid to high quality pol
 
 cleaned_data <- cleaned_data %>% filter(numeric_grade >= cutoffgrade)
 
-# Look at the range of pollscore to select a cutoff 
-
-pollscore_range <- range(cleaned_data$pollscore)
-
-cutoffscore <- 0.22 
-
-# remove observations that has high pollsore (lower reflects less error and bias)
-
-cleaned_data <- cleaned_data %>% filter(pollscore >= cutoffscore)
 
 #Filter the dataset to keep only rows with Kamala Harris or Donald Trump
 
