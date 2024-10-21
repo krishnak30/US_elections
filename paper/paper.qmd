@@ -1,10 +1,17 @@
 ---
-title: "My title"
+title: Forcasting US Elections using PollsofPolls
 subtitle: "My subtitle if needed"
 author: 
+<<<<<<< HEAD
   - Shamalya D
   - Another author
 thanks: "Code and data are available at: [https://github.com/RohanAlexander/starter_folder](https://github.com/RohanAlexander/starter_folder)."
+=======
+  - Shamayla Durrin
+  - Denise Chang 
+  - Krishna Kumar
+thanks: "Code and data are available at: [https://github.com/krishnak30/US_elections](https://github.com/krishnak30/US_elections)."
+>>>>>>> 3593ca569fa7b9da41fb97baad5027b97a16709d
 date: today
 date-format: long
 abstract: "First sentence. Second sentence. Third sentence. Fourth sentence."
@@ -13,6 +20,21 @@ number-sections: true
 bibliography: references.bib
 ---
 
+<<<<<<< HEAD
+=======
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+library(tidyverse)
+library(arrow)
+library(here)
+library(ggplot2)
+analysis_data <- read_parquet(here("data/02-analysis_data/analysis_data.parquet"))
+```
+
+>>>>>>> 3593ca569fa7b9da41fb97baad5027b97a16709d
 # Introduction
 
 # Data
@@ -25,6 +47,7 @@ add a summary statistics table here maybe?
 
 Mention any variables that were constructed here, as well
 
+<<<<<<< HEAD
 ## High Level Data Cleaning 
 
 ## Summary Statistics
@@ -32,11 +55,25 @@ Mention any variables that were constructed here, as well
 ## Graphs for Imp. Variables (relationships)
 
 ## Measurement
+=======
+# Data {#sec-data}
+
+## Overview
+
+We use the statistical programming language R [@citeR].... Our data [@shelter].... Following @tellingstories, we consider...
+
+Overview text
+
+## Measurement
+
+Some paragraphs about how we go from a phenomena in the world to an entry in the dataset.
+>>>>>>> 3593ca569fa7b9da41fb97baad5027b97a16709d
 
 Public support for political candidates is an essential part of understanding electoral dynamics for a variety of reasons. Public polls provide insights into the preferences and beliefs of certain groups of people, usually voters in specific states or districts, and sometimes to also correlate preferences to demographic information (race, age, neighbourhood, etc).
 
 The results help inform policy decisions, help track the likely outcomes of elections, help government officials and candidates decide where to invest time, funds, and resources to get the desired results. Polling organizations aim to capture data by surveying a representative sample of voters, free from government intervention.
 
+<<<<<<< HEAD
 Polling organizations conduct these surveys through various methods. For our particular data set, the following methods have been used to gauge public sentiment:
 
 -   App panel
@@ -66,6 +103,9 @@ After collecting the required data, the polling organizations transform these re
 Variables such as pollster rating and transparency score help validate the reliability of the pollster and the polling results they publish.
 
 Each entry in the dataset represents a glimpse of public opinion at a specific time and location, capturing measured support percentages alongside contextual variables such as pollster, methodology, and sample size. This extensive approach allows for an enhanced understanding of public support dynamics, facilitating informed analyses of electoral outcomes.
+=======
+Some of our data is of penguins (@fig-bills), from @palmerpenguins.
+>>>>>>> 3593ca569fa7b9da41fb97baad5027b97a16709d
 
 ```{r}
 library(arrow)
@@ -73,3 +113,303 @@ analysis_data <- read_parquet(here::here("data/02-analysis_data/analysis_data.pa
 
 head(analysis_data)
 ```
+<<<<<<< HEAD
+=======
+
+Talk more about it.
+
+And also planes (@fig-planes). (You can change the height and width, but don't worry about doing that until you have finished every other aspect of the paper - Quarto will try to make it look nice and the defaults usually work well once you have enough text.)
+
+```{r}
+#| label: fig-planes
+#| fig-cap: Relationship between wing length and width
+#| echo: false
+#| warning: false
+#| message: false
+
+analysis_data <- read_csv(here::here("data/02-analysis_data/analysis_data.csv"))
+
+analysis_data |> 
+  ggplot(aes(x = width, y = length)) +
+  geom_point(alpha = 0.8) +
+  theme_minimal() +
+  labs(x = "Wing width (mm)",
+       y = "Wing length (mm)")
+```
+
+Talk way more about it.
+
+# Polls of Polls to Forcast Winning Candidate
+
+## Forecasting Approach
+
+The polls of polls methodology is widely used in election prediction as it aggregates multiple polls to provide a more reliable estimate of voter support, rather than relying on any single poll. The goal is to reduce errors and biases present in individual polls by using a weighted average of many different polls. In our approach, we calculate the weights based on several important variables. Sample size is included because larger polls are generally more reliable and have smaller margins of error. Pollscore (or pollster rating) reflects the empirical quality of a pollster, balancing both accuracy and bias, allowing us to give more weight to those with a proven track record. We also account for the pollscope, differentiating between national and state-level polls, as state polls may offer more localized insights into voter sentiment. We also use recency as more recent polls give us a more accurate estimate of voter sentiment.
+
+However, we acknowledge that even with these adjustments, there may still be underlying biases from individual pollsters toward the candidates. To account for this, we will select a baseline pollster with a strong rating, high transparency, and minimal historical error, and regress the support percentage (pct) on pollster, including the same variables as controls whcih was used in the weighting method, such as sample size, pollscore and pollscope.Additionally, we will control for the state of the poll, as support levels can vary regionally. Therefore each pollster's coefficient in the regression model will represent the bias of that pollster relative to the baseline pollster. Controlling for these factors is crucial because it ensures that the differences between pollsters are not driven by other factors, such as differences in sample size or the types of polls they conduct, but by their inherent bias in support estimates. Once we have calculated the weights, we will use them to generate a weighted average of support for Kamala Harris and Donald Trump, ultimately comparing their weighted support to forecast the likely winner of the election.
+
+## **Exploration of Control Variables**
+
+### Investigating the Effect of Pollscore on Candidate Support
+
+```{r}
+
+# Define pollscore ranges (you can adjust the binwidth if needed)
+cleaned_data <- cleaned_data %>%
+  mutate(pollscore_range = cut(pollscore, breaks = seq(-1.5, 1, by = 0.3), include.lowest = TRUE))
+
+# Calculate the average support for each candidate within each pollscore range
+average_support <- cleaned_data %>%
+  group_by(pollscore_range, candidate_name) %>%
+  summarise(avg_support = mean(pct, na.rm = TRUE)) %>%
+  ungroup()
+
+# Create a bar plot
+ggplot(average_support, aes(x = pollscore_range, y = avg_support, fill = candidate_name)) +
+  geom_bar(stat = "identity", position = "dodge") +  # Dodge to separate bars for each candidate
+  scale_fill_manual(values = c("Donald Trump" = "indianred", "Kamala Harris" = "steelblue")) +  # Custom colors
+  labs(title = "Average Support for Candidates by Pollscore Range",
+       x = "Pollscore Range",
+       y = "Average Support (%)",
+       fill = "Candidate") +
+  theme_minimal() +  # Minimal theme
+  theme(
+    legend.position = "bottom",
+    plot.title = element_text(hjust = 0.5)
+  )
+
+
+```
+
+### Investigating the Effect of Poll Recency on Candidate Support
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+# Custom colors for candidates
+trump_color <- "indianred"
+harris_color <- "steelblue"
+
+# Create the plot with the requested adjustments (recency vs support)
+ggplot(analysis_data, aes(x = recency, y = pct, color = candidate_name)) +
+  geom_point(size = 0.5, alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE) + # Smaller dots with slight transparency
+  scale_color_manual(values = c("Donald Trump" = trump_color, "Kamala Harris" = harris_color)) +  # Custom colors
+  theme_minimal() +  # Remove grey background
+  theme(
+    panel.grid.major = element_blank(),  # Remove major gridlines
+    panel.grid.minor = element_blank(),  # Remove minor gridlines
+    legend.title = element_blank(),  # Remove "candidate_name" as title
+    legend.position = "bottom",  # Move legend to the bottom
+    plot.title = element_text(hjust = 0.5),  # Center the title
+    axis.line = element_line(color = "black"),  # Add axis lines
+    panel.border = element_blank(),  # Remove panel border
+    axis.line.y.right = element_line(color = "black"),  # Add right spine for Kamala Harris
+    axis.line.x.top = element_blank()  # Remove top spine
+  ) +
+  labs(title = "Recency vs Support for Kamala Harris and Donald Trump",
+       x = "Poll Recency (days since poll end date)", 
+       y = "Support (%)") +
+  facet_wrap(~ candidate_name, scales = "free_y")  # Separate plots for each candidate
+
+```
+
+### Investigate the effect of sample size on support estimates
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+
+
+# Custom colors for candidates
+trump_color <- "indianred"
+harris_color <- "steelblue"
+
+# Create the plot with the requested adjustments
+ggplot(analysis_data, aes(x = sample_size, y = pct, color = candidate_name)) +
+  geom_point(size = 0.5, alpha = 0.9) + # Smaller dots with slight transparency
+  geom_smooth(method = "lm", se = FALSE)+ 
+ 
+  scale_color_manual(values = c("Donald Trump" = trump_color, "Kamala Harris" = harris_color)) +  # Custom colors
+  theme_minimal() +  # Remove grey background
+  theme(
+    panel.grid.major = element_blank(),  # Remove major gridlines
+    panel.grid.minor = element_blank(),  # Remove minor gridlines
+    legend.title = element_blank(),  # Remove "candidate_name" as title
+    legend.position = "bottom",  # Move legend to the bottom
+    plot.title = element_text(hjust = 0.5),  # Center the title
+    axis.line = element_line(color = "black"),  # Add axis lines
+    panel.border = element_blank(),  # Remove panel border
+    axis.line.y.right = element_line(color = "black"),  # Add right spine for Kamala Harris
+    axis.line.x.top = element_blank()  # Remove top spine
+  ) +
+  labs(title = "Sample Size vs Support for Kamala Harris and Donald Trump",
+       x = "Sample Size", 
+       y = "Support (%)") +
+  facet_wrap(~ candidate_name, scales = "free_y")
+```
+
+### Distribution of support for Candiates by State 
+
+```{r}
+# Calculate mean support for each candidate in each state
+state_support <- analysis_data %>%
+  group_by(state, candidate_name) %>%
+  summarise(mean_support = mean(pct)) %>%
+  ungroup()
+
+# Pivot the data to have one row per state with separate columns for Harris and Trump
+state_support_wide <- state_support %>%
+  pivot_wider(names_from = candidate_name, values_from = mean_support)
+```
+
+```{r}
+# Calculate mean support for each candidate in each state
+state_support <- analysis_data %>%
+  group_by(state, candidate_name) %>%
+  summarise(mean_support = mean(pct))
+
+# Calculate the proportion of support for Kamala Harris
+state_support <- state_support %>%
+  mutate(harris_proportion = Kamala_Harris / (Kamala_Harris + Donald_Trump))
+
+```
+
+# Model
+
+The goal of our modelling strategy is twofold. Firstly,...
+
+Here we briefly describe the Bayesian analysis model used to investigate... Background details and diagnostics are included in [Appendix -@sec-model-details].
+
+## Model set-up
+
+Define $y_i$ as the number of seconds that the plane remained aloft. Then $\beta_i$ is the wing width and $\gamma_i$ is the wing length, both measured in millimeters.
+
+\begin{align} 
+y_i|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
+\mu_i &= \alpha + \beta_i + \gamma_i\\
+\alpha &\sim \mbox{Normal}(0, 2.5) \\
+\beta &\sim \mbox{Normal}(0, 2.5) \\
+\gamma &\sim \mbox{Normal}(0, 2.5) \\
+\sigma &\sim \mbox{Exponential}(1)
+\end{align}
+
+We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`.
+
+### Model justification
+
+We expect a positive relationship between the size of the wings and time spent aloft. In particular...
+
+We can use maths by including latex between dollar signs, for instance $\theta$.
+
+# Results
+
+Our results are summarized in @tbl-modelresults.
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| message: false
+
+library(rstanarm)
+
+first_model <-
+  readRDS(file = here::here("models/first_model.rds"))
+```
+
+```{r}
+#| echo: false
+#| eval: true
+#| label: tbl-modelresults
+#| tbl-cap: "Explanatory models of flight time based on wing width and wing length"
+#| warning: false
+
+modelsummary::modelsummary(
+  list(
+    "First model" = first_model
+  ),
+  statistic = "mad",
+  fmt = 2
+)
+```
+
+# Discussion
+
+## First discussion point {#sec-first-point}
+
+If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this.
+
+## Second discussion point
+
+Please don't use these as sub-heading labels - change them to be what your point actually is.
+
+## Third discussion point
+
+## Weaknesses and next steps
+
+Weaknesses and next steps should also be included.
+
+\newpage
+
+\appendix
+
+# Appendix {.unnumbered}
+
+# Additional data details
+
+# Model details {#sec-model-details}
+
+## Posterior predictive check
+
+In @fig-ppcheckandposteriorvsprior-1 we implement a posterior predictive check. This shows...
+
+In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. This shows...
+
+```{r}
+#| eval: true
+#| echo: false
+#| message: false
+#| warning: false
+#| label: fig-ppcheckandposteriorvsprior
+#| layout-ncol: 2
+#| fig-cap: "Examining how the model fits, and is affected by, the data"
+#| fig-subcap: ["Posterior prediction check", "Comparing the posterior with the prior"]
+
+pp_check(first_model) +
+  theme_classic() +
+  theme(legend.position = "bottom")
+
+posterior_vs_prior(first_model) +
+  theme_minimal() +
+  scale_color_brewer(palette = "Set1") +
+  theme(legend.position = "bottom") +
+  coord_flip()
+```
+
+## Diagnostics
+
+@fig-stanareyouokay-1 is a trace plot. It shows... This suggests...
+
+@fig-stanareyouokay-2 is a Rhat plot. It shows... This suggests...
+
+```{r}
+#| echo: false
+#| eval: true
+#| message: false
+#| warning: false
+#| label: fig-stanareyouokay
+#| fig-cap: "Checking the convergence of the MCMC algorithm"
+#| fig-subcap: ["Trace plot", "Rhat plot"]
+#| layout-ncol: 2
+
+plot(first_model, "trace")
+
+plot(first_model, "rhat")
+```
+
+\newpage
+
+# References
+>>>>>>> 3593ca569fa7b9da41fb97baad5027b97a16709d
