@@ -121,8 +121,6 @@ The data set contains a wide range of variables that are essential for understan
 
 -   **`transparency_score`**: A grade for how transparent a pollster is, calculated based on how much information it discloses about its polls and weighted by recency. The highest Transparency Score is 10.
 
-## 
-
 ## Summary Statistics
 
 ### 1) Average Pollster Quality (pollscore): mean, median, mode, min, max
