@@ -177,7 +177,60 @@ Weaknesses and next steps should also be included.
 
 # Appendix {.unnumbered}
 
-# Pollster
+# Emerson College Polling Methodology (October 14-16, 2024)
+
+## Overview
+Emerson College Polling, known for its extensive online polling methods, conducted a survey from October 14 to 16, 2024, targeting 1,000 likely voters. The poll measured voter preferences between Kamala Harris and Donald Trump, revealing a near tie with Harris at 50% and Trump at 49%.
+
+## Population, Frame, and Sample
+The target population is likely voters in the U.S. elections. These voters are determined by the voters' likeliness to vote in the upcoming elections and the voter's voting history. Both of these factors are self-reported. 
+
+The sampling frame is the voters that are on the Aristotle list and on the online panel provided by CINT. Aristotle is an online supplier of voter files and CINT is a software company that connects researchers, such as Emerson, to online panels. This approach helps ensure a representative sample by accurately reflecting the electorate.
+
+The sample size is the 1,000 likely voters chosen arbitrarily from the sampling frame. Likely voters are determined by a combination of voter history, registration status, and demographic data. These factors are self-reported. 
+
+## Sample Recruitment and Approach
+Emerson College used a mixed-mode sampling approach for its polling. Specifically, three primary modes were used to collect data for its October 14-16, 2024 poll:
+
+- MMS-to-web text surveys: Respondents were contacted via text messages sent to cell phones. These messages directed participants to complete the survey online. This method was conducted using voter lists provided by Aristotle.
+
+- Interactive Voice Response (IVR): Landlines were targeted using automated phone calls where respondents could answer questions using their keypads. The contact information for this was also sourced from Aristotle’s voter lists.
+
+- Online Panel from CINT: Emerson utilized a pre-screened, opt-in online panel of voters provided by CINT.
+
+## Advantages and Trade-offs in Mixed-Mode Sampling
+The multi-mode sampling approach used in this poll has several advantages:
+
+- Wider demographic reach: Having a combination of data collection methods allows Emerson to gather responses from a broader demographic group. In this polling, MMS-to-web surveys mostly gather responses from younger voters and those who primarily use mobile devices. IVR target older and rural voters, who are more likely to respond via landlines. Online panels is more efficient in reaching tech-savvy individuals. 
+
+- Cost-efficient: Automated technologies reduce the cost compared to live interviews. In a polling context, this allows for a larger sample size.
+
+However, the trade-offs include:
+
+- Coverage bias: IVR only reaches individuals with landlines, which may skew results towards older demographics.
+
+- Self-selection bias: Respondents in online panels tend to be more engaged, which can lead to over-representation of politically active individuals.
+
+## Non-response Handling
+Emerson addresses non-response using a weighting system. The data is adjusted based on key demographic variables like age, gender, race, education, and party affiliation, making the sample more representative of the electorate. Weights are applied to compensate for under- or over-represented groups, ensuring balanced results.
+
+## Questionnaire Design
+The Emerson survey features a straightforward, efficient design focused on key issues and voter preferences. Strengths of the questionnaire include:
+
+- Simplicity: Clear, concise questions makes the survey easy for respondents to understand and to provide accurate answers.
+
+- Topical relevance: The poll zeroes in on vote preference and demographic splits, delivering timely insights during election cycles.
+
+However, weaknesses include:
+
+- Lack of nuance: While the survey captures basic preferences, it does not delve deeply into voters' motivations or the factors driving their choices.
+
+- Mode limitations: Different survey modes can affect how respondents engage with the questions. This can potentially influence the depth and accuracy of voter responses.
+
+## Conclusion
+Emerson College Polling's mixed-mode methodology is effective in balancing cost with broad demographic reach. Its weighting techniques contribute to reliable and accurate results despite non-responses. While the use of multiple survey modes increases population representation, possible biases—such as lack of nuance and mode effects need to be taken into consideration when interpreting results. 
+
+In sum, this method is a strong predictor of election outcomes and continues to adapt to the evolving challenges of modern polling.
 
 # Idealized Methodology
 
