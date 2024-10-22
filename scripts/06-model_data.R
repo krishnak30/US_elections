@@ -1,22 +1,19 @@
 #### Preamble ####
-# Purpose: Models the percentage of support for Kamala Harris (pct) based on various factors such as pollster, poll type (state vs. national), 
-#          sample size, and other relevant variables.
-# Author: Shamayla Durrin
-# Date: 19 October 2024
-# Contact: shamayla.islam@mil.utoronto.ca
+# Purpose: Models... [...UPDATE THIS...]
+# Author: Rohan Alexander [...UPDATE THIS...]
+# Date: 11 February 2023 [...UPDATE THIS...]
+# Contact: rohan.alexander@utoronto.ca [...UPDATE THIS...]
 # License: MIT
-# Pre-requisites: Requires the cleaned dataset of polls, including variables like pollster, state, sample size, and pct for Kamala Harris.
-# Any other information needed: Ensure the necessary packages (e.g., tidyverse, broom, and modeling packages) are installed before running the model.
+# Pre-requisites: [...UPDATE THIS...]
+# Any other information needed? [...UPDATE THIS...]
 
 
 #### Workspace setup ####
-
 library(tidyverse)
 library(rstanarm)
-library(arrow)
 
 #### Read data ####
-analysis_data <- read_parquet("data/02-analysis_data/analysis_data.parquet")
+analysis_data <- read_csv("data/analysis_data/analysis_data.csv")
 
 ### Model data ####
 first_model <-
@@ -34,7 +31,7 @@ first_model <-
 #### Save model ####
 saveRDS(
   first_model,
-  file = "models/first_m\del.rds"
+  file = "models/first_model.rds"
 )
 
 

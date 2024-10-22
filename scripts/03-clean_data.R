@@ -89,32 +89,6 @@ cleaned_data <- cleaned_data %>%
 cleaned_data <- cleaned_data %>%
   filter(end_date >= as.Date("2024-07-21"))
 
-# Calculate recency of every poll and make a column 
-
-reference_date <- max(cleaned_data$end_date, na.rm = TRUE)  # Most recent poll date
-
-analysis_data <- cleaned_data %>%
-  mutate(recency = as.numeric(reference_date - end_date))
-
-
 #### Save data ####
 
 write_parquet(cleaned_data, "data/02-analysis_data/analysis_data.parquet")
-
-#### Creating Data For Mapping ####
-
-deduped_data <- raw_data %>%
-  distinct()  # Remove duplicate rows
-
-# Step 2: Filter for Kamala Harris and non-empty states
-harris_data <- deduped_data %>%
-  filter(candidate_name == "Kamala Harris" & !is.na(state))
-
-# Step 3: Group by state and calculate mean support for Kamala Harris
-mapping_data <- harris_data %>%
-  group_by(state) %>%
-  summarise(mean_support_kamala = mean(pct, na.rm = TRUE))
-
-# Step 4: Save the aggregated data to a parquet file
-write_parquet(mapping_data, "data/02-analysis_data/mapping_data.parquet")
-
