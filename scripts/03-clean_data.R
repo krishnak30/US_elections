@@ -21,19 +21,19 @@ raw_data <- read_csv("data/01-raw_data/raw_data.csv")
 
 cleaned_data <- raw_data %>% distinct()
 
-# Create a new column 'poll_scope' based on whether the 'state' column is empty or not
+# Create a new column 'National' based on whether the 'state' column is empty or not
 
 cleaned_data <- cleaned_data %>%
-  mutate(poll_scope = ifelse( is.na(state), "National", "State"))
+  mutate(national = ifelse(is.na(state), 1, 0))
 
-# Replace missing values (NA) in the 'state' column with NA
+# Replace missing values (NA) in the 'state' column with Not Applicable
 
 cleaned_data <- cleaned_data %>%
   mutate(state = ifelse(is.na(state), "Not Applicable", state))
 
 # Keep only the relevant columns
 cleaned_data <- cleaned_data %>%
-  select(poll_id, pollster_id, pollster, numeric_grade, pollscore, state, start_date, poll_scope, end_date, sample_size, population, candidate_name, pct)
+  select(poll_id, pollster_id, pollster, numeric_grade, pollscore, state, start_date, national, end_date, sample_size, population, candidate_name, pct)
 
 # Remove any rows that have missing values in any column
 cleaned_data <- cleaned_data %>% drop_na()
@@ -52,7 +52,7 @@ cleaned_data <- cleaned_data %>% filter(numeric_grade >= cutoffgrade)
 #Filter the dataset to keep only rows with Kamala Harris or Donald Trump
 
 cleaned_data <- cleaned_data %>%
-  filter(candidate_name %in% c("Kamala Harris", "Donald Trump"))
+  filter(candidate_name %in% c("Kamala Harris"))
 
 # Ensure the start_date and end_date columns are in date format
 cleaned_data <- cleaned_data %>%
@@ -61,14 +61,33 @@ cleaned_data <- cleaned_data %>%
     end_date = parse_date_time(end_date, orders = c("mdy", "ymd"))
   )
 
+# Apply clean_names to clean the column names
+cleaned_data <- cleaned_data %>%
+  clean_names()
+
 # Ensure that end_date is a Date object
 
 cleaned_data$end_date <- as.Date(cleaned_data$end_date)
 
-# Create a new column to calculate the recency of a poll 
 
-cleaned_data$recency <- as.numeric(Sys.Date() - cleaned_data$end_date)
+# Remove polls with pollster counts less than 5
 
+cleaned_data <- cleaned_data %>%
+  group_by(pollster) %>%
+  filter(n() >= 5) %>%
+  ungroup()
+
+# Convert percentage to actual number for modelling
+
+cleaned_data <- cleaned_data %>%
+  mutate(
+    num_support = round((pct / 100) * sample_size, 0)  
+  )
+
+# Filter Observatons after Harris was declared 
+
+cleaned_data <- cleaned_data %>%
+  filter(end_date >= as.Date("2024-07-21"))
 
 #### Save data ####
 
