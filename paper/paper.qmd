@@ -20,29 +20,91 @@ bibliography: references.bib
 #| warning: false
 #| message: false
 
+#install.packages("psych")
+#install.packages("plotly")
+install.packages("stringr")
+library(psych)
 library(tidyverse)
 library(arrow)
 library(here)
 library(ggplot2)
+library(kableExtra)
+library(sf)
+library(tidyverse)
+library(plotly)
+library(RColorBrewer)
+library(stringr)
+library(modelsummary)
 analysis_data <- read_parquet(here("data/02-analysis_data/analysis_data.parquet"))
+mapping_data <- st_read(here("data/03-shapefiles_data/US"))
 ```
 
 # Introduction
 
 # Data
 
-## Data Set Overview
+### Measurement
 
-add a summary statistics table here maybe?
+In the dataset of our analysis, the process of measurement begins by capturing real-world public opinion through surveys. Polling organizations transform this observed phenomenon into structured data by recording support percentages, pollster details, and methodological choices, thus turning public sentiment into quantifiable entries in the dataset.
+
+Public opinion polls are essential for understanding voter preferences and electoral dynamics, providing data that informs policy decisions and campaign strategies. Our data set captures public support for candidates at specific times, along with information on methodologies, sample sizes, and pollster ratings.
+
+Polling organizations use various methods, such as App panels, IVR (Interactive Voice Response), Live phone calls, Text-to-web systems etc. These methods can influence the validity and reliability of results, with larger sample sizes generally yielding more reliable estimates. Some methods, like live phone interviews, may be seen as more trustworthy than others.
+
+Our data set also includes important measures of pollster performance, such as numeric grades, poll scores, and transparency scores. These metrics are calculated by considering bias, race difficulty, predictive error, and transparency, allowing us to assess the accuracy of each poll. The "pollscore," for instance, reflects a pollster’s past performance and reliability, adjusted for potential biases.
+
+### Data Cleaning
+
+The raw data for this project, sourced from FiveThirtyEight, [@FiveThirtyEight] underwent a series of cleaning steps to prepare it for analysis. Initially, duplicate rows were removed to ensure that only unique observations remained, facilitated by the janitor package \[\@janitor\]. A new binary variable, 'national', was created to indicate whether a poll was conducted at the national or state level. Missing values in the 'state' column were replaced with "Not Applicable," and numeric grades were evaluated to filter out low-quality pollsters, keeping only those with a numeric grade above 1. This cutoff was selected to retain mid to high-level pollsters for more reliable results. These steps were performed using functions from the dpylr package \[\@dplyr\]. Furthermore, dates were standardized and converted into a proper format for analysis using the lubridate package \[\@lubridate\]. Polls related to Kamala Harris were retained for further analysis, and percentage support values were transformed into actual numbers of supporters based on sample size. Additionally, pollster counts below five were excluded to focus on more reliable data sources. Polls regarding Kamala Harris were filtered to include only those conducted after her official candidacy announcement on July 21, 2024, ensuring the data reflects post-announcement public sentiment.The cleaned dataset was saved in Parquet format for efficient storage and retrieval, using the arrow package \[\@arrow\].
+
+### Summary of Variables of Interest
 
 ```{r}
-library(arrow)
-analysis_data <- read_parquet(here::here("data/02-analysis_data/analysis_data.parquet"))
 
-#head(analysis_data, 20)
-colnames(analysis_data)
-#print(nrow(analysis_data))
+#| include: false
+#| warning: false
+#| message: false
+
+library(dplyr)
+library(modelsummary)
+library(tools)  
+library(kableExtra)
+
+# Set options to use kableExtra for table formatting
+options(modelsummary_factory_default = 'kableExtra')
+
+# Create the summary statistics table for the specified numerical variables
+summary_table <- analysis_data %>%
+  select(numeric_grade, pollscore, sample_size, num_support) %>%
+  # Remove underscores and capitalize the first letter of each word
+  rename_with(~ toTitleCase(gsub("_", " ", .))) %>%
+  datasummary_skim(
+    fun_numeric = list(
+      Mean = mean,
+      SD = sd,
+      Min. = min,
+      Median = median,
+      Max. = max
+    )
+  )
+
+# Display the summary statistics table
+print(summary_table)
+
+#kable(summary_table, caption = "Summary of Variables of Interest") %>%
+  kable_styling(full_width = FALSE)
+
 ```
+
+The summary statistics **\[CROSS REFERENCE HERE\]** for the numeric variables provide significant insights into the polling data. The **numeric grade** has a mean of 2.3 and a standard deviation of 0.6, suggesting that most polls are graded around a middle value, though there is moderate variability. The range, with a minimum of 1.1 and a maximum of 3.0, indicates the presence of both low-quality and higher-quality polls within the dataset.
+
+The **pollscore** averages at −0.5, with a standard deviation of 0.6. Since lower poll scores indicate more favorable outcomes for certain candidates or parties, this negative mean suggests that the polls are, on average, skewing positively towards their targets. The minimum of −1.5 and maximum of 1.7 further illustrate the wide distribution of poll results, highlighting the variability in outcomes across different polls.
+
+Looking at the **sample size**, the mean of 1962.5, accompanied by a substantial standard deviation of 2608.0, reflects significant variability in respondent numbers. With a minimum sample size of 382 and a maximum of 12,084, it is evident that while many polls are conducted with relatively small sample sizes, a few achieve much larger respondent pools. This variability can enhance the reliability of findings, particularly for those polls with larger sample sizes.
+
+Finally, the **number of supporters** reported has a mean of 949.2 and a standard deviation of 1290.0, indicating that while the average number of supporters is relatively high, there is considerable variability. The minimum value of 172 and maximum of 6042 underscores the diverse contexts in which these polls were conducted.
+
+Overall, these summary statistics emphasize the variability and range present in the polling data, which may impact the reliability and interpretation of the findings. The mixture of low and high values in numeric grade, pollscore, and sample size points to the importance of careful analysis when drawing conclusions from these polling efforts.
 
 ## Variables
 
@@ -93,7 +155,11 @@ library(dplyr)
 # Generate summary statistics for national and state polls
 summary_stats <- analysis_data %>%
   filter(!is.na(pollscore)) %>%  # Exclude rows with missing pollscore
+
   group_by(national) %>%         # Group by the binary 'national' column (1 for national, 0 for state)
+
+  group_by(national) %>%        # Group by poll_scope
+
   summarize(
     Count = n(),
     Min = round(min(pollscore), 2),
@@ -109,7 +175,7 @@ summary_stats <- analysis_data %>%
   select(`Poll Type`, Count, Min, `1st Qu.`, Median, Mean, `3rd Qu.`, Max)  # Reorder columns
 
 # Print the summary statistics
-print(summary_stats)
+kable(summary_stats)
 
 
 ```
@@ -171,54 +237,9 @@ In **Plot 2**, the values are somewhat evenly divided between 6,000 and the maxi
 
 The findings from these histograms suggest potential limitations and advantages in the accuracy and validity of the insights generated from the polling data. Smaller sample sizes are typically less desirable in polling, as they can yield less reliable estimates and increase the margin of error. Consequently, the predominance of smaller sample sizes in Plot 1 raises concerns about the robustness of the polling findings. However, the more even distribution in Plot 2 suggests that some polls conducted with larger sample sizes could enhance the reliability of the results.
 
-Ultimately, the analysis emphasizes the need to consider sample sizes critically when interpreting polling data, as larger sample sizes tend to provide a better representation of the population's views. Thus, while many polls may fall short of ideal sample sizes, the existence of larger samples in the dataset can offer valuable insights into public opinion. **However, we need to determine an ideal and acceptable sample size that would be enough for the polling results to be considered reliable, before we conclude smaller samples as being unreliable.**
+Ultimately, the analysis emphasizes the need to consider sample sizes critically when interpreting polling data, as larger sample sizes tend to provide a better representation of the population's views. Thus, while many polls may fall short of ideal sample sizes, the existence of larger samples in the data set can offer valuable insights into public opinion. **However, we need to determine an ideal and acceptable sample size that would be enough for the polling results to be considered reliable, before we conclude smaller samples as being unreliable.**
 
-### 3) Summary Statistics Table for Numeric Variables
-
-```{r}
-#| warning: false
-#| message: false
-#| echo: false
-
-
-library(dplyr)
-library(modelsummary)
-library(tools)  # Make sure to load the tools package for toTitleCase()
-
-# Set options to use kableExtra for table formatting
-options(modelsummary_factory_default = 'kableExtra')
-
-# Create the summary statistics table for the specified numerical variables
-summary_table <- analysis_data %>%
-  select(numeric_grade, pollscore, sample_size, num_support) %>%
-  # Remove underscores and capitalize the first letter of each word
-  rename_with(~ toTitleCase(gsub("_", " ", .))) %>%
-  datasummary_skim(
-    fun_numeric = list(
-      Mean = mean,
-      SD = sd,
-      Min. = min,
-      Median = median,
-      Max. = max
-    )
-  )
-
-# Display the summary statistics table
-print(summary_table)
-
-```
-
-The summary statistics **\[CROSS REFERENCE HERE\]** for the numeric variables provide significant insights into the polling data. The **numeric grade** has a mean of 2.3 and a standard deviation of 0.6, suggesting that most polls are graded around a middle value, though there is moderate variability. The range, with a minimum of 1.1 and a maximum of 3.0, indicates the presence of both low-quality and higher-quality polls within the dataset.
-
-The **pollscore** averages at −0.5, with a standard deviation of 0.6. Since lower poll scores indicate more favorable outcomes for certain candidates or parties, this negative mean suggests that the polls are, on average, skewing positively towards their targets. The minimum of −1.5 and maximum of 1.7 further illustrate the wide distribution of poll results, highlighting the variability in outcomes across different polls.
-
-Looking at the **sample size**, the mean of 1962.5, accompanied by a substantial standard deviation of 2608.0, reflects significant variability in respondent numbers. With a minimum sample size of 382 and a maximum of 12,084, it is evident that while many polls are conducted with relatively small sample sizes, a few achieve much larger respondent pools. This variability can enhance the reliability of findings, particularly for those polls with larger sample sizes.
-
-Finally, the **number of supporters** reported has a mean of 949.2 and a standard deviation of 1290.0, indicating that while the average number of supporters is relatively high, there is considerable variability. The minimum value of 172 and maximum of 6042 underscores the diverse contexts in which these polls were conducted.
-
-Overall, these summary statistics emphasize the variability and range present in the polling data, which may impact the reliability and interpretation of the findings. The mixture of low and high values in numeric grade, pollscore, and sample size points to the importance of careful analysis when drawing conclusions from these polling efforts.
-
-### 4) Top 10 Pollsters and their Average Pollscores and Numeric Grades
+### 3) Top 10 Pollsters and their Average Pollscores and Numeric Grades
 
 ```{r}
 library(dplyr)
@@ -238,8 +259,7 @@ top_pollsters <- analysis_data %>%
 # Rename the columns to remove underscores and capitalize 'Pollster'
 colnames(top_pollsters) <- c("Pollster", "Count", "Average Pollscore", "Average Numeric Grade")
 
-# Print the top pollsters table
-print(top_pollsters)
+kable(top_pollsters, format = "html", caption = "Top 10 Pollsters by Frequency")
 
 ```
 
@@ -251,7 +271,7 @@ The presence of several pollsters with negative scores indicates a general trend
 
 ### 5) Histogram of End Dates
 
-## Graphs for Imp. Variables (relationships)
+yet to do.
 
 ## Measurement
 
@@ -295,39 +315,176 @@ Each entry in the data set represents a glimpse of public opinion at a specific 
 
 ## Forecasting Approach
 
-The polls of polls methodology is widely used in election prediction as it aggregates multiple polls to provide a more reliable estimate of voter support, rather than relying on any single poll. The goal is to reduce errors and biases present in individual polls by using a weighted average of many different polls. In our approach, we calculate the weights based on several important variables. Sample size is included because larger polls are generally more reliable and have smaller margins of error. Pollscore (or pollster rating) reflects the empirical quality of a pollster, balancing both accuracy and bias, allowing us to give more weight to those with a proven track record. We also account for the pollscope, differentiating between national and state-level polls, as state polls may offer more localized insights into voter sentiment. We also use recency as more recent polls give us a more accurate estimate of voter sentiment.
+The polls of polls methodology is widely used in election prediction as it aggregates multiple polls to provide a more reliable estimate of voter support, rather than relying on any single poll. The goal is to reduce errors and biases present in individual polls by using a weighted average of many different polls.
 
-However, we acknowledge that even with these adjustments, there may still be underlying biases from individual pollsters toward the candidates. To account for this, we will select a baseline pollster with a strong rating, high transparency, and minimal historical error, and regress the support percentage (pct) on pollster, including the same variables as controls whcih was used in the weighting method, such as sample size, pollscore and pollscope.Additionally, we will control for the state of the poll, as support levels can vary regionally. Therefore each pollster's coefficient in the regression model will represent the bias of that pollster relative to the baseline pollster. Controlling for these factors is crucial because it ensures that the differences between pollsters are not driven by other factors, such as differences in sample size or the types of polls they conduct, but by their inherent bias in support estimates. Once we have calculated the weights, we will use them to generate a weighted average of support for Kamala Harris and Donald Trump, ultimately comparing their weighted support to forecast the likely winner of the election.
+In our approach, we will employ linear modeling of voter support percentage (pct) on pollster and other independent variables such as sample size, poll recency, and poll scope (state vs. national). This will allow us to smooth out the inherent noise, biases, and variability across different pollsters. Once we obtain the predicted values from our model, we will weight these predictions based on the numeric grade (quality score) of each pollster to calculate an overall national estimate of the outcome. Additionally, we will separately compute estimates for key battleground states, where voter behavior can be more volatile and pivotal in deciding the final outcome of the election. This approach helps us capture both national trends and critical state-level dynamics.
 
-## **Exploration of Control Variables**
+## **Exploration of Independent Variables**
 
-### Investigating the Effect of Pollscore on Candidate Support
+### Support for Kamala Harris by Sample Size and Polling Level
+
+\[\@fig-sample\] suggests that the relationship between support for Kamala Harris and sample size shows a slight positive trend, indicating a small increase in support as sample sizes grow. Both national (blue) and state (green) polls reflect this upward trend, although the effect is minimal. Since voting outcomes often depend on small margins, this subtle increase in support with larger sample sizes could still be relevant in predicting overall support.
 
 ```{r}
+#| warning: false
+#| message: false
+#| echo: false
+#| label: fig-sample
+#| fig-cap: Sample Size vs. Support for Kamala Harris, Colored by Pollscope (National vs. State)
 
-# Define pollscore ranges (you can adjust the binwidth if needed)
-cleaned_data <- analysis_data %>%
-  mutate(pollscore_range = cut(pollscore, breaks = seq(-1.5, 1, by = 0.3), include.lowest = TRUE))
+# Custom colors for pollscope
+national_color <- "chartreuse3"
+state_color <- "steelblue"
 
-# Calculate the average support for each candidate within each pollscore range
-average_support <- cleaned_data %>%
-  group_by(pollscore_range, candidate_name) %>%
-  summarise(avg_support = mean(pct, na.rm = TRUE)) %>%
-  ungroup()
+# Create the plot for Kamala Harris with the requested adjustments
+ggplot(analysis_data %>% filter(candidate_name == "Kamala Harris"), 
+       aes(x = sample_size, y = pct, color = factor(national))) +
+  geom_point(size = 0.5, alpha = 0.9) +  # Smaller dots with slight transparency
+  geom_smooth(aes(group = 1), method = "lm", se = FALSE, color = "azure4") +  # Linear model smoothing
+  
+  # Custom colors for national (1 for National, 0 for State)
+  scale_color_manual(values = c("1" = national_color, "0" = state_color), 
+                     labels = c("National", "State")) +  # Pollscope categories with custom colors
+  
+  # Same minimal styling
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),  # Remove major gridlines
+    panel.grid.minor = element_blank(),  # Remove minor gridlines
+    legend.title = element_blank(),  # No title for the legend
+    legend.position = "bottom",  # Move legend to the bottom
+    plot.title = element_text(hjust = 0.5),  # Center the title
+    axis.line = element_line(color = "black"),  # Add axis lines
+    panel.border = element_blank(),  # Remove panel border
+    axis.line.y.right = element_line(color = "black"),  # Add right spine
+    axis.line.x.top = element_blank()  # Remove top spine
+  ) +
+  labs(x = "Sample Size", y = "Support (%)")  # No title, just axis labels
 
-# Create a bar plot
-ggplot(average_support, aes(x = pollscore_range, y = avg_support, fill = candidate_name)) +
-  geom_bar(stat = "identity", position = "dodge") +  # Dodge to separate bars for each candidate
-  scale_fill_manual(values = c("Donald Trump" = "indianred", "Kamala Harris" = "steelblue")) +  # Custom colors
-  labs(title = "Average Support for Candidates by Pollscore Range",
-       x = "Pollscore Range",
-       y = "Average Support (%)",
-       fill = "Candidate") +
+```
+
+### Variation in Support for Kamala Harris Among Most Frequent Pollsters
+
+[@fig-top5pollsters] above shows the variation in support for Kamala Harris across the five most frequent pollsters. Notably, the median support levels differ between pollsters, indicating variability in central estimates of Harris’s support. For instance, Siena/NYT reports a higher median compared to Redfield & Wilton Strategies. Additionally, the differing ranges of support estimates highlight potential discrepancies in the methodologies, sample sizes, and biases employed by each pollster. This suggests that different pollster have different interpretations of candidate support, underlining the importance of aggregating data from multiple sources to avoid over-reliance on any single pollster.
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+#| label: fig-top5pollsters
+#| fig-cap: "Support for Kamala Harris across the top 5 pollsters by poll count."
+
+# Get top 5 pollsters by poll count
+top5_pollsters <- analysis_data %>%
+  filter(candidate_name == "Kamala Harris") %>%
+  count(pollster, sort = TRUE) %>%
+  top_n(5, n) %>%
+  pull(pollster)
+
+# Filter the data for only these top 5 pollsters
+top5_data <- analysis_data %>%
+  filter(pollster %in% top5_pollsters & candidate_name == "Kamala Harris")
+
+# Custom colors for boxplot fill
+boxplot_colors <- c("chartreuse3", "steelblue", "indianred", "purple", "darkorange")
+
+# Create the boxplots with thinner borders, smaller points, and rotated x-axis labels
+ggplot(top5_data, aes(x = pollster, y = pct, fill = pollster)) +
+  geom_boxplot(size = 0.2, outlier.size = 0.5) +  # Thinner box lines and smaller outliers
+  scale_fill_manual(values = boxplot_colors) +
   theme_minimal() +  # Minimal theme
   theme(
-    legend.position = "bottom",
-    plot.title = element_text(hjust = 0.5)
+    panel.grid.major = element_blank(),  # Remove major gridlines
+    panel.grid.minor = element_blank(),  # Remove minor gridlines
+    legend.position = "none",  # No legend needed for boxplots
+    axis.line = element_line(color = "black"),  # Add axis lines
+    plot.title = element_text(hjust = 0.5),  # Center title
+    axis.text.x = element_text(angle = 20, hjust = 1),  # Rotate x-axis labels for better readability
+    axis.line.y.right = element_line(color = "black"),  # Add right spine for clean look
+    axis.line.x.top = element_blank(),  # Remove top spine
+    panel.border = element_blank()  # Remove panel border
+  ) +
+  labs(x = "Pollster", y = "Support (%)")  # Labels
+
+```
+
+### Support for Kamala Harris Based on Recency of Polls and Pollster Quality
+
+In \[\@fig-enddate\], we observe a slight increasing trend in support for Kamala Harris as the end date of polls progresses towards October. This may indicate a gradual improvement in her polling performance over time. The color gradient, reflecting the pollster's error and bias (Pollscore), reveals variations in bias: greener points represent more negative biases, while redder points indicate more positive biases.
+
+While the recency of the polls shows a stable trend in Harris's support, the wide distribution of bias (Pollscore) values suggests that pollster quality can vary substantially. These variations could influence the model's predictions if left unaddressed. Hence, including both recency and pollster quality as predictor variables in the model might be valuable to account for such variations. Further model diagnostics and validation will help decide if these variables are significant.
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+#| label: fig-enddate
+#| fig-cap: "Support for Kamala Harris based on End Date and colored by Pollster's Error and Bias."
+
+# Define the color gradient based on pollscore
+ggplot(analysis_data %>% filter(candidate_name == "Kamala Harris"), aes(x = end_date, y = pct, color = pollscore)) +
+  geom_point(size = 0.8, alpha = 1) +  # Adjust point size and transparency
+  geom_smooth(method = "lm", se = FALSE, color = "azure4") +  # Add a smooth trend line for overall support
+  scale_color_gradient2(low = "blue", mid = "green", high = "red", midpoint = 0) +  # Color gradient
+  theme_minimal() +  # Minimal theme as usual
+  theme(
+    panel.grid.major = element_blank(),  # Remove major gridlines
+    panel.grid.minor = element_blank(),  # Remove minor gridlines
+    legend.position = "bottom",  # Legend at the bottom
+    axis.line = element_line(color = "black"),  # Add axis lines
+    panel.border = element_blank(),  # Remove panel border
+    axis.line.y.right = element_line(color = "black"),  # Add right spine for clean look
+    axis.line.x.top = element_blank()  # Remove top spine
+  ) +
+  labs(x = "Date Poll Ended",
+       y = "Support (%)",
+       color = "Error and Bias of Pollster (Low to High)")  # Updated label for color gradient
+
+```
+
+### Political Leanings of Different State
+
+[@fig-mapinterac] provides a state-level representation of Kamala Harris's average support across the U.S., with the darker blue shades indicating states where her support is higher, and the redder tones showing where her support is lower. Gray areas represent states where we have no polling data available.
+
+The gradient highlights notable geographic trends. Harris has the strongest support in states like Vermont, Massachusetts, and New York, while states like Utah and West Virginia show considerably lower levels of support. A distinct pattern emerges in the West, where coastal states like California favor Harris more strongly, contrasting with inland states like Wyoming and Utah.
+
+This reveals that political leanings differ greatly by state, and this regional variation should be controlled for in any regression model analyzing poll data. The map serves as a useful tool for visualizing regional variations in voter support for Kamala Harris as reflected in the available polling data.
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+#| label: fig-mapinterac
+#| fig-cap: "Average Support for Kamala Harris in Different States estimated by Polls"
+  # For string manipulation
+
+# Filter out non-continental states (Hawaii and Alaska)
+us_states_filtered <- us_states %>% 
+  filter(!NAME %in% c("Alaska", "Hawaii"))
+
+# Ensure correct merge between map data and Kamala's support data
+map_data_full <- left_join(us_states_filtered, mapping_data, by = c("NAME" = "state"))
+
+# Create centroids for state labels
+state_centroids <- st_centroid(us_states_filtered)
+
+# Plot using geom_sf() for sf objects
+p <- ggplot(map_data_full) +
+  geom_sf(aes(fill = mean_support_kamala, text = paste("State:", str_to_title(NAME), "<br>Average Support:", round(mean_support_kamala, 2))), color = "white") +  # Capitalize state names
+  scale_fill_distiller(palette = "RdBu", direction = 1, na.value = "gray", name = "Kamala's Support") +  # Reverse RdBu color gradient
+  geom_text(data = state_centroids, aes(geometry = geometry, label = STUSPS), stat = "sf_coordinates", size = 2) +  # State labels
+  labs(title = "Support for Kamala Harris by State", 
+       caption = "States with no polling data are shown in gray") +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    plot.title = element_text(hjust = 0.5),
+    panel.grid = element_blank(),  # Remove grid lines
+    axis.title = element_blank(),  # No axis titles for maps
+    axis.text = element_blank(),   # No axis labels
+    axis.ticks = element_blank()   # No axis ticks
   )
+
 
 
 ```
@@ -425,6 +582,10 @@ state_support <- analysis_data %>%
 # Calculate the proportion of support for Kamala Harris
 state_support <- state_support %>%
   mutate(harris_proportion = Kamala_Harris / (Kamala_Harris + Donald_Trump))
+
+# Turn ggplot to plotly for interactivity, add hover template for better control over display
+ggplotly(p, tooltip = "text")
+
 
 ```
 
