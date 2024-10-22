@@ -234,4 +234,24 @@ In sum, this method is a strong predictor of election outcomes and continues to 
 
 # Idealized Methodology
 
+## Overview
+This methodology outlines an election forecasting plan with a budget of $100,000. Heavily inspired by TIPP Insights and Emerson College's hybrid approaches, the survey methodology balances cost-efficiency and data accuracy by using different modes of data collection and wide demographic reach. 
+
+This forecasting plan will predict the popular vote and Electoral College outcomes, emphasizing key swing states and underrepresented voter groups.
+
+## Sampling Approach
+This idealized methodology uses a multi-mode hybrid sampling approach. This allows the use of both probability-based and non-probability-based methods:
+
+- Probability-based methods:
+
+  - Live phone interviews (landline and cell): As used by TIPP, live phone interviews is a direct and personal method of collecting responses. Voter lists would be sourced from Aristotle to ensure we contact likely voters. This mode reaches older voters and voters with less internet connection. 
+  
+  - Interactive Voice Response (IVR): Similar to Emerson’s approach, IVR for landline users balances costs and ensures demographic representation, particularly among older or less tech-savvy populations. This method captures quick responses and is less expensive than live interviews.
+
+- Non-probability methods:
+
+  - MMS-to-web (mobile): Following Emerson’s MMS-to-web strategy, we would send multimedia messages to likely voters’ cell phones, encouraging them to complete an online survey. This method works well for younger, mobile-first voters, helping fill in gaps where traditional methods might miss.
+  
+  - Online panel recruitment via CINT: To mirror TIPP’s online panel approach, a portion of the survey would be conducted via an opt-in panel of pre-screened voters from CINT, capturing tech-savvy respondents. CINT’s platform ensures that different voter groups, including hard-to-reach groups, are represented in the polling.
+
 # References
