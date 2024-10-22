@@ -31,8 +31,11 @@ library(plotly)
 library(RColorBrewer)
 library(stringr)
 library(modelsummary)
+library(broom)
+library(sf)
 analysis_data <- read_parquet(here("data/02-analysis_data/analysis_data.parquet"))
 mapping_data <- st_read(here("data/03-shapefiles_data/US"))
+mean_support_data <- read_parquet(here("data/02-analysis_data/mapping_data.parquet"))
 ```
 
 # Introduction
@@ -47,7 +50,7 @@ Public opinion polls are essential for understanding voter preferences and elect
 
 Polling organizations use various methods, such as App panels, IVR (Interactive Voice Response), Live phone calls, Text-to-web systems etc. These methods can influence the validity and reliability of results, with larger sample sizes generally yielding more reliable estimates. Some methods, like live phone interviews, may be seen as more trustworthy than others.
 
-Our dataset also includes important measures of pollster performance, such as numeric grades, poll scores, and transparency scores. These metrics are calculated by considering bias, race difficulty, predictive error, and transparency, allowing us to assess the accuracy of each poll. The "pollscore," for instance, reflects a pollster’s past performance and reliability, adjusted for potential biases.
+The dataset also includes important measures of pollster performance, such as numeric grades, poll scores, and transparency scores. These metrics are calculated by considering bias, race difficulty, predictive error, and transparency, allowing us to assess the accuracy of each poll. The "pollscore," for instance, reflects a pollster’s past performance and reliability, adjusted for potential biases.
 
 ### Data Cleaning
 
@@ -151,6 +154,9 @@ kable(summary_stats)
 
 As shown above, the summary statistics table **\[CROSS-REFERENCE HERE\]** offers an overview of poll scores for national and state polls, with 2,971 and 2,953 entries, respectively. Both categories feature a minimum poll score of -1.5, which a high level of validity and reliability. The first quartile shows national polls at -0.9, while state polls are slightly lower at -1.1. Median scores are -0.3 for national polls and -0.4 for state polls, suggesting that half of the polls in both categories yield moderately negative scores, reinforcing a trend of favorable sentiment. The mean score is -0.37 for national polls, indicating a less reliable perception compared to the -0.51 mean for state polls. The third quartile for national polls (0.0) indicates that the upper 25% of scores are neutral, while state polls remain just below neutral at 0.7. The maximum score of 1.7 for national polls reflects a notable negative perception for at least one candidate, while the maximum for state polls is 0.7. Overall, these statistics illustrate a strong reliability of pollsters considering their errors and bias.
 
+```         
+```
+
 ### 2) Distribution of sample sizes: same as above
 
 ```{r}
@@ -216,11 +222,9 @@ The histograms **\[CROSS-REFERENCE HERE\]** reveal significant trends in sample 
 
 The findings from the 20,001-30,000 range further illustrate the scarcity of larger sample sizes, with only a couple of values noted at each of the significant points. This distribution emphasizes a preference for smaller samples in the polling data analyzed.
 
-In the context of polling results, these findings suggest potential limitations in the accuracy and validity of the insights generated. Larger sample sizes are typically preferred in polling as they tend to yield more reliable estimates and reduce the margin of error, leading to a better representation of the population's views. Consequently, the predominance of smaller sample sizes in this data set may raise concerns about the robustness of the polling findings, potentially affecting their applicability in broader analyses or decision-making processes. **However, we must determine an acceptable and ideal sample size that would allow us to determine the reliability of these results.**
+In the context of polling results, these findings suggest potential limitations in the accuracy and validity of the insights generated. Larger sample sizes are typically preferred in polling as they tend to yield more reliable estimates and reduce the margin of error, leading to a better representation of the population's views. Consequently, the predominance of smaller sample sizes in this data set may raise concerns about the robustness of the polling findings, potentially affecting their applicability in broader analyses or decision-making processes. However, we must determine an acceptable and ideal sample size that would allow us to determine the reliability of these results.
 
-# Polls of Polls to Forcast Winning Candidate
-
-## Forecasting Approach
+# Forecasting Approach Using Polls of Polls Method
 
 The polls of polls methodology is widely used in election prediction as it aggregates multiple polls to provide a more reliable estimate of voter support, rather than relying on any single poll. The goal is to reduce errors and biases present in individual polls by using a weighted average of many different polls.
 
@@ -358,19 +362,12 @@ The gradient highlights notable geographic trends. Harris has the strongest supp
 This reveals that political leanings differ greatly by state, and this regional variation should be controlled for in any regression model analyzing poll data. The map serves as a useful tool for visualizing regional variations in voter support for Kamala Harris as reflected in the available polling data.
 
 ```{r}
-#| warning: false
-#| message: false
-#| echo: false
-#| label: fig-mapinterac
-#| fig-cap: "Average Support for Kamala Harris in Different States estimated by Polls"
-  # For string manipulation
-
 # Filter out non-continental states (Hawaii and Alaska)
-us_states_filtered <- us_states %>% 
+us_states_filtered <- mapping_data %>% 
   filter(!NAME %in% c("Alaska", "Hawaii"))
 
 # Ensure correct merge between map data and Kamala's support data
-map_data_full <- left_join(us_states_filtered, mapping_data, by = c("NAME" = "state"))
+map_data_full <- left_join(us_states_filtered, mean_support_data, by = c("NAME" = "state"))
 
 # Create centroids for state labels
 state_centroids <- st_centroid(us_states_filtered)
@@ -399,32 +396,185 @@ ggplotly(p, tooltip = "text")
 
 # Model
 
-The goal of our modelling strategy is twofold. Firstly,...
+In this section, we aim to address the inherent biases and differences present in various polling data to arrive at a robust prediction model. The core challenge lies in selecting a model with an optimal balance between complexity and fit, ensuring it accurately captures the dynamics of polling data while avoiding overfitting. To this end, we carefully evaluated different model specifications to determine the most appropriate one for our forecasting purpose.
 
-Here we briefly describe the Bayesian analysis model used to investigate... Background details and diagnostics are included in [Appendix -@sec-model-details].
+Given that variables like numeric grade and pollscore are perfectly collinear with pollster, they were excluded from the regression analysis to avoid multicollinearity issues. These variables, however, remain integral to our weighting strategy, where they will be used to adjust for differences in polling accuracy and reliability. Instead, we focus on key features such as pollster, sample size, state, and recency, gradually adding complexity to the model.
 
-## Model set-up
+By systematically comparing model specifications that incorporate these variables, we aim to select the model with the right balance between predictive accuracy and generalizability, ultimately providing the best possible forecast.
 
-Define $y_i$ as the number of seconds that the plane remained aloft. Then $\beta_i$ is the wing width and $\gamma_i$ is the wing length, both measured in millimeters.
+## Model Set Up
 
-\begin{align} 
-y_i|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
-\mu_i &= \alpha + \beta_i + \gamma_i\\
-\alpha &\sim \mbox{Normal}(0, 2.5) \\
-\beta &\sim \mbox{Normal}(0, 2.5) \\
-\gamma &\sim \mbox{Normal}(0, 2.5) \\
-\sigma &\sim \mbox{Exponential}(1)
-\end{align}
+We aim to model the percentage of support for Kamala Harris in each poll as a function of the pollster the sample size, the state, and the recency of the poll.
 
-We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`.
+$$ y_i = \alpha + \beta_1 \cdot \texttt{pollster}_i + \beta_2 \cdot \texttt{sample_size}_i + \beta_3 \cdot \texttt{recency}_i +  \beta_4 \cdot \texttt{state}_i + \epsilon_i $$
 
-### Model justification
+Where
 
-We expect a positive relationship between the size of the wings and time spent aloft. In particular...
+-   $y_i$​ is the percentage of support for Kamala Harris in poll iii,
 
-We can use maths by including latex between dollar signs, for instance $\theta$.
+-   $α$ is the intercept,
 
-# Results
+-   $β_1$ captures the effect of the polling organization,
+
+-   $β_2​$ captures the effect of the sample size,
+
+-   $β_3$​ captures the effect of recency (how recent the poll is),
+
+-   $β_4$ capture the effects of the different states
+
+-   ​ $\epsilon_i$ represents the error term, assumed to follow a normal distribution with mean 0.
+
+## Model Justification
+
+We compared three models with different sets of predictors, gradually increasing the model complexity. Model 1 only included **pollster** and **sample size** as predictors, while Model 2 introduced **state** as an additional factor. Finally, Model 3 incorporated **recency** as another key predictor. Among these models, Model 3 demonstrated the highest $R^2$ value (0.731), indicating the best fit and ability to explain the variation in the data. Additionally, Model 3 had the lowest AIC (4786.815) and BIC (5203.787) values, suggesting that it provided the best balance between model complexity and predictive performance. Therefore, Model 3 was selected as the most appropriate model for smoothing out polling biases and differences, offering the most accurate prediction of support for Kamala Harris.
+
+```{r}
+# Load necessary libraries
+library(broom)
+library(dplyr)
+library(knitr)
+
+# Load the models from RDS files
+model_1 <- readRDS(here("models/model_1.rds"))
+model_2 <- readRDS(here("models/model_2.rds"))
+model_3 <- readRDS(here("models/model_3.rds"))
+
+# Function to get model details
+get_model_details <- function(model, model_name, include_recency = FALSE) {
+  r2 <- summary(model)$r.squared
+  adj_r2 <- summary(model)$adj.r.squared
+  f_stat <- summary(model)$fstatistic[1]
+  
+  # Extract p-values for Sample Size and Recency
+  sample_size_pvalue <- tidy(model) %>% filter(term == "sample_size") %>% pull(p.value)
+  sample_size_significance <- ifelse(sample_size_pvalue < 0.05, paste0("Significant (p = ", round(sample_size_pvalue, 4), ")"), paste0("Not significant (p = ", round(sample_size_pvalue, 4), ")"))
+  
+  recency_significance <- "Not included"
+  if (include_recency) {
+    recency_pvalue <- tidy(model) %>% filter(term == "recency") %>% pull(p.value)
+    recency_significance <- ifelse(recency_pvalue < 0.05, paste0("Highly significant (p < 2e-16)"), paste0("Not significant (p = ", round(recency_pvalue, 4), ")"))
+  }
+  
+  return(data.frame(
+    Model = model_name,
+    Variables_Included = ifelse(include_recency, "Pollster + Sample Size + State + Recency", "Pollster + Sample Size + State"),
+    R2 = round(r2, 3),
+    Adjusted_R2 = round(adj_r2, 3),
+    F_statistic = round(f_stat, 2),
+    Sample_Size_Significance = sample_size_significance,
+    Recency_Significance = recency_significance,
+    States_Significant = ifelse(model_name == "Model 1", "Not included", ifelse(model_name == "Model 2", "Several states", "More states"))
+  ))
+}
+
+# Generate the summaries for all models
+model_1_summary <- get_model_details(model_1, "Model 1")
+model_2_summary <- get_model_details(model_2, "Model 2")
+model_3_summary <- get_model_details(model_3, "Model 3", include_recency = TRUE)
+
+# Combine all summaries into one data frame
+all_summaries <- bind_rows(model_1_summary, model_2_summary, model_3_summary)
+
+# Print the table using kable for better formatting
+
+kable(all_summaries, format = "markdown",row.names = FALSE, col.names = c("Model", "Variables Included", "R²", "Adjusted R²", "F-statistic", "Sample Size Significance", "Recency Significance", "States Significant"))
+
+
+```
+
+```{r}
+# Create a data frame for AIC and BIC comparison
+aic_bic_table <- data.frame(
+  Model = c("Model 1", "Model 2", "Model 3"),
+  AIC = c(AIC(model_1), AIC(model_2), AIC(model_3)),
+  BIC = c(BIC(model_1), BIC(model_2), BIC(model_3))
+)
+
+# Print the table using kable for LaTeX format
+kable(aic_bic_table, format = "markdown", col.names = c("Model", "AIC", "BIC"), booktabs = TRUE)
+
+```
+
+## Model Results
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| message: false
+
+# Load necessary libraries
+library(modelsummary)
+library(broom)
+
+# Load Model 3 from RDS file
+model_3 <- readRDS(file = here::here("models/model_3.rds"))
+
+# Generate LaTeX output for the model
+latex_output <- modelsummary(model_3, output = "latex")
+
+# Ensure the output is a character string
+latex_output_string <- capture.output(cat(latex_output))
+
+# Write the LaTeX string to a .tex file
+writeLines(latex_output_string, here::here("model_3_summary.tex"))
+
+```
+
+```{r}
+# Save LaTeX output to a string
+latex_output <- modelsummary(model_3, output = "latex")
+
+# Write the LaTeX string to a .tex file
+writeLines(latex_output, here::here("output/model_3_summary.tex"))
+```
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| message: false
+
+# Load necessary libraries
+library(modelsummary)
+library(broom)
+
+# Load Model 3 from RDS file
+model_3 <- readRDS(file = here::here("models/model_3.rds"))
+
+modelsummary(model_3, output = "latex", file = "model_3_summary.tex")
+```
+
+```{r}
+#| echo: false
+#| eval: true
+#| warning: false
+#| message: false
+
+# Load necessary libraries
+library(modelsummary)
+library(broom)
+
+# Load Model 3 from RDS file
+model_3 <- readRDS(file = here::here("models/model_3.rds"))
+
+modelsummary(model_3)
+
+# Display the summary of Model 3 using modelsummary
+#| echo: false
+#| eval: true
+#| label: tbl-model3results
+#| tbl-cap: "Regression results for Model 3 including Pollster, Sample Size, State, and Recency"
+
+modelsummary::modelsummary(
+  list(
+    "Model 3" = model_3
+  ),
+  statistic = "std.error",
+  fmt = 2
+)
+
+```
 
 Our results are summarized in @tbl-modelresults.
 
