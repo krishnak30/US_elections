@@ -254,4 +254,9 @@ This idealized methodology uses a multi-mode hybrid sampling approach. This allo
   
   - Online panel recruitment via CINT: To mirror TIPP’s online panel approach, a portion of the survey would be conducted via an opt-in panel of pre-screened voters from CINT, capturing tech-savvy respondents. CINT’s platform ensures that different voter groups, including hard-to-reach groups, are represented in the polling.
 
+## Recruitment Strategy
+By using Aristotle’s voter lists and CINT's platform as a sampling frame, the sample consists of likely voters based on registration status and past voting behavior. Quota sampling would be used to match the demographic profile of the U.S. electorate. This ensures that respondents in the sample reflect key demographic variables such as age, gender, race, and education level.
+
+We would oversample key swing states like Pennsylvania, Wisconsin, and Florida. Key swing states are states where there is no overwhelming support for a particular candidate or political party. The outcome in these states can often determine the overall result of the election, making them critical in securing a win in the Electoral College. Oversampling these states allows a more accurate forecasting in these battlegrounds, which are critical for predicting the Electoral College outcome.
+
 # References
