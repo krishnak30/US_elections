@@ -89,6 +89,30 @@ cleaned_data <- cleaned_data %>%
 cleaned_data <- cleaned_data %>%
   filter(end_date >= as.Date("2024-07-21"))
 
+# Calculate recency 
+
+reference_date <- max(analysis_data$end_date, na.rm = TRUE)  # Most recent poll date
+
+# Calculate recency in days
+analysis_data <- analysis_data %>%
+  mutate(recency = as.numeric(reference_date - end_date))
+
+# Check the dataset after adding recency
+head(analysis_data)
+
 #### Save data ####
 
 write_parquet(cleaned_data, "data/02-analysis_data/analysis_data.parquet")
+
+#### Creating Mapping Data ####
+
+map_data <- raw_data %>%
+  filter(candidate_name == "Kamala Harris") %>%  # Filter for Kamala Harris
+  distinct() %>%  # Remove duplicates
+  select(state, pct) %>%  # Keep only the 'state' and 'pct' columns
+  group_by(state) %>%  # Group by state
+  summarise(mean_support = mean(pct, na.rm = TRUE))  # Calculate the mean pct for each state
+
+#### Save data ####
+
+write_parquet(map_data, "data/02-analysis_data/map_data.parquet")
