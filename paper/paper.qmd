@@ -39,8 +39,9 @@ add a summary statistics table here maybe?
 library(arrow)
 analysis_data <- read_parquet(here::here("data/02-analysis_data/analysis_data.parquet"))
 
-head(analysis_data, 20)
-
+#head(analysis_data, 20)
+colnames(analysis_data)
+#print(nrow(analysis_data))
 ```
 
 ## Variables
@@ -59,6 +60,8 @@ The data set contains a wide range of variables that are essential for understan
 
 -   **`start_date` / `end_date`**: Dates during which the poll was conducted.
 
+-   **`national`**: A binary variable which determines where a poll was national (1) or state (0)
+
 -   **`sample_size`**: The number of respondents in the poll.
 
 -   **`population`**: The group surveyed (e.g., likely voters or registered voters).
@@ -69,23 +72,30 @@ The data set contains a wide range of variables that are essential for understan
 
 -   **`methodology`**: The method used to conduct the poll (e.g. online panel)
 
--   **`transparency_score`**: A grade for how transparent a pollster is, calculated based on how much information it discloses about its polls and weighted by recency. The highest Transparency Score is 10.
+-   **`num_support`**: The number of people supporting a candidate in a poll
 
 ## High Level Data Cleaning
 
+blah blah blah
+
 ## Summary Statistics
 
-### 1) Average Pollster Quality (pollscore): mean, median, mode, min, max
+### 1) Average Pollster Quality by Poll Type (pollscore vs state/national): mean, median, mode, min, max
 
 ```{r}
+#| warning: false
+#| message: false
+#| echo: false
+
+
 library(dplyr)
 
 # Generate summary statistics for national and state polls
 summary_stats <- analysis_data %>%
   filter(!is.na(pollscore)) %>%  # Exclude rows with missing pollscore
-  group_by(poll_scope) %>%        # Group by poll_scope
+  group_by(national) %>%         # Group by the binary 'national' column (1 for national, 0 for state)
   summarize(
-    Count = n(),                   
+    Count = n(),
     Min = round(min(pollscore), 2),
     `1st Qu.` = round(quantile(pollscore, 0.25), 2),
     Median = round(median(pollscore), 2),
@@ -93,7 +103,10 @@ summary_stats <- analysis_data %>%
     `3rd Qu.` = round(quantile(pollscore, 0.75), 2),
     Max = round(max(pollscore), 2),
     .groups = 'drop'  # Drop grouping structure for cleaner output
-  )
+  ) %>%
+  # Rename 'national' to 'Poll Type' and replace values
+  mutate(`Poll Type` = ifelse(national == 1, "National", "State")) %>%
+  select(`Poll Type`, Count, Min, `1st Qu.`, Median, Mean, `3rd Qu.`, Max)  # Reorder columns
 
 # Print the summary statistics
 print(summary_stats)
@@ -101,82 +114,142 @@ print(summary_stats)
 
 ```
 
-As shown above, the summary statistics table **\[CROSS-REFERENCE HERE\]** offers an overview of poll scores for national and state polls, with 2,971 and 2,953 entries, respectively. Both categories feature a minimum poll score of -1.5, which a high level of validity and reliability. The first quartile shows national polls at -0.9, while state polls are slightly lower at -1.1. Median scores are -0.3 for national polls and -0.4 for state polls, suggesting that half of the polls in both categories yield moderately negative scores, reinforcing a trend of favorable sentiment. The mean score is -0.37 for national polls, indicating a less reliable perception compared to the -0.51 mean for state polls. The third quartile for national polls (0.0) indicates that the upper 25% of scores are neutral, while state polls remain just below neutral at 0.7. The maximum score of 1.7 for national polls reflects a notable negative perception for at least one candidate, while the maximum for state polls is 0.7. Overall, these statistics illustrate a strong reliability of pollsters considering their errors and bias.
+As shown above, the summary statistics table **\[CROSS-REFERENCE HERE\]** offers an overview of poll scores for national and state polls, with 427 and 696 entries, respectively. Both categories feature a minimum poll score of -1.5, which a high level of validity and reliability. The first quartile shows national polls at -0.9, while state polls are slightly lower at -1.1. Median scores are -0.3 for national polls and -0.4 for state polls, suggesting that half of the polls in both categories yield moderately negative scores, reinforcing a trend of favorable sentiment. The mean score is -0.39 for national polls, indicating a less reliable perception compared to the -0.54 mean for state polls. The third quartile for national and state polls (-0.3) indicates that the upper 25% of scores are slightly above neutral. The maximum score of 1.7 for national polls reflects a notable negative perception for at least one candidate, while the maximum for state polls is 0.6. Overall, these statistics illustrate a strong reliability of pollsters considering their errors and bias.
 
-### 2) Distribution of sample sizes: same as above
+### 2) Distribution of Sample Sizes
 
 ```{r}
+#| warning: false
+#| message: false
+#| echo: false
+
 library(ggplot2)
 library(dplyr)
-library(gridExtra)  # Load the gridExtra package
+library(gridExtra) 
 
-# Create a new variable for sample size ranges
+# Adjust the sample size range categories
 analysis_data <- analysis_data %>%
   mutate(sample_size_range = case_when(
-    sample_size <= 10000 ~ "0-10,000",
-    sample_size > 10000 & sample_size <= 20000 ~ "10,001-20,000",
-    sample_size > 20000 & sample_size <= 30000 ~ "20,001-30,000",
-    TRUE ~ "Above 30,000"
+    sample_size <= 6000 ~ "0-6,000",
+    sample_size > 6000 & sample_size <= 13000 ~ "6,001-13,000",
+    TRUE ~ "Above 13,000"  # Catch any values above 13,000
   ))
 
-# Plot for 0-10,000
-p1 <- ggplot(analysis_data %>% filter(sample_size <= 10000), aes(x = sample_size)) +
+# Plot for 0-6,000
+p1 <- ggplot(analysis_data %>% filter(sample_size <= 6000), aes(x = sample_size)) +
   geom_histogram(binwidth = 500, fill = "lightgreen", color = NA, alpha = 0.7) +
-  labs(title = "Sample Sizes 
-       (0-10,000)",
+  labs(title = "Sample Sizes (0-6,000)",
        x = "Sample Size",
        y = "Count") +
-  scale_x_continuous(limits = c(0, 10000)) +  # Set x limits for the first plot
-  scale_y_continuous(limits = c(0, 2300)) +  # Set y limits for the first plot
+  scale_x_continuous(limits = c(0, 6000)) +  # Set x limits for the first plot
+  scale_y_continuous(limits = c(0, 500)) +  # Adjust y limits based on data
   theme_minimal() +
-  theme(plot.title = element_text(size = 10),  # **Decreased font size of the title**
+  theme(plot.title = element_text(size = 10, hjust = 0.5),  # **Center the title**
         axis.title.y = element_text(margin = margin(r = 15)))  # **Increased gap for y-axis label**
 
-# Plot for 10,001 - 20,000
-p2 <- ggplot(analysis_data %>% filter(sample_size > 10000 & sample_size <= 20000), aes(x = sample_size)) +
+# Plot for 6,001 - 13,000
+p2 <- ggplot(analysis_data %>% filter(sample_size > 6000 & sample_size <= 13000), aes(x = sample_size)) +
   geom_histogram(binwidth = 500, fill = "indianred", color = NA, alpha = 0.7) +
-  labs(title = "Sample Sizes 
-       (10,001-20,000)",
+  labs(title = "Sample Sizes (6,001-13,000)",
        x = "Sample Size",
        y = "Count") +
-  scale_x_continuous(limits = c(10001, 20000)) +  # Set x limits for the second plot
-  scale_y_continuous(limits = c(0, 50)) +  # Set y limits for the second plot
+  scale_x_continuous(limits = c(6001, 13000)) +  # Set x limits for the second plot
+  scale_y_continuous(limits = c(0, 20)) +  # Adjust y limits based on data
   theme_minimal() +
-  theme(plot.title = element_text(size = 10),  # **Decreased font size of the title**
+  theme(plot.title = element_text(size = 10, hjust = 0.5),  # **Center the title**
         axis.title.y = element_text(margin = margin(r = 10)))  # **Increased gap for y-axis label**
 
-# Plot for 20,001 - 30,000
-p3 <- ggplot(analysis_data %>% filter(sample_size > 20000 & sample_size <= 30000), aes(x = sample_size)) +
-  geom_histogram(binwidth = 500, fill = "lightblue", color = NA, alpha = 0.7) +
-  labs(title = "Sample Sizes 
-       (20,001-30,000)",
-       x = "Sample Size",
-       y = "Count") +
-  scale_x_continuous(limits = c(20001, 30000)) +  # Set x limits for the third plot
-  scale_y_continuous(limits = c(0, 10)) +  # Set y limits for the third plot
-  theme_minimal() +
-  theme(plot.title = element_text(size = 10),  # **Decreased font size of the title**
-        axis.title.y = element_text(margin = margin(r = 5)))  # **Increased gap for y-axis label**
-
-# Arrange the plots side by side
-grid.arrange(p1, p2, p3, ncol = 3)  # ncol=3 arranges the plots in one row
+# Arrange the two plots side by side
+grid.arrange(p1, p2, ncol = 2)  # ncol=2 arranges the plots in one row
 
 
 ```
 
-The histograms **\[CROSS-REFERENCE HERE\]** reveal significant trends in sample sizes across the different ranges, indicating a general tendency towards smaller samples in the polling data. Most values within the 0-10,000 range cluster at the lower end, suggesting that many polls are conducted with limited respondent numbers, which may compromise the reliability and representativeness of the results. **However, this conclusion is very much dependent on what we determine to be an acceptable sample size for the results to be considered reliable**. In the 10,001-20,000 range, while there is some increase in sample sizes, the majority still falls within the 10,000-12,500 bracket, with few reaching the upper limits.
+The histograms **\[CROSS-REFERENCE HERE\]** reveal significant trends in sample sizes across the different ranges, indicating a general tendency towards smaller samples in the polling data. **In Plot 1**, most of the values are concentrated on the left side, with very few values extending beyond the 4,500 mark. This clustering suggests that many polls are conducted with limited respondent numbers, which may compromise the reliability and representativeness of the results.
 
-The findings from the 20,001-30,000 range further illustrate the scarcity of larger sample sizes, with only a couple of values noted at each of the significant points. This distribution emphasizes a preference for smaller samples in the polling data analyzed.
+In **Plot 2**, the values are somewhat evenly divided between 6,000 and the maximum sample size of 12,084. This distribution shows a broader representation of sample sizes, indicating that while there are still smaller samples, there are also a notable number of polls that feature larger sample sizes. This contrast with Plot 1 highlights a shift towards more robust polling efforts.
 
-In the context of polling results, these findings suggest potential limitations in the accuracy and validity of the insights generated. Larger sample sizes are typically preferred in polling as they tend to yield more reliable estimates and reduce the margin of error, leading to a better representation of the population's views. Consequently, the predominance of smaller sample sizes in this data set may raise concerns about the robustness of the polling findings, potentially affecting their applicability in broader analyses or decision-making processes. **However, we must determine an acceptable and ideal sample size that would allow us to determine the reliability of these results.**
+The findings from these histograms suggest potential limitations and advantages in the accuracy and validity of the insights generated from the polling data. Smaller sample sizes are typically less desirable in polling, as they can yield less reliable estimates and increase the margin of error. Consequently, the predominance of smaller sample sizes in Plot 1 raises concerns about the robustness of the polling findings. However, the more even distribution in Plot 2 suggests that some polls conducted with larger sample sizes could enhance the reliability of the results.
 
-### 3) Average percentage of support for top candidates (pct): how do we display this, which kind of graph, plot?
+Ultimately, the analysis emphasizes the need to consider sample sizes critically when interpreting polling data, as larger sample sizes tend to provide a better representation of the population's views. Thus, while many polls may fall short of ideal sample sizes, the existence of larger samples in the dataset can offer valuable insights into public opinion. **However, we need to determine an ideal and acceptable sample size that would be enough for the polling results to be considered reliable, before we conclude smaller samples as being unreliable.**
 
-### 4) Number of polls conducted by State: map showing different colours for the different states and the number of polls conducted for them. this will only include the 'state' polls then. not national polls.
+### 3) Summary Statistics Table for Numeric Variables
 
-### 5) population, type fo voters simple graph, chart: how many likely vs registered voters.
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
 
-### 6) methodology: count for each type fo methodology and how many times it was used
+
+library(dplyr)
+library(modelsummary)
+library(tools)  # Make sure to load the tools package for toTitleCase()
+
+# Set options to use kableExtra for table formatting
+options(modelsummary_factory_default = 'kableExtra')
+
+# Create the summary statistics table for the specified numerical variables
+summary_table <- analysis_data %>%
+  select(numeric_grade, pollscore, sample_size, num_support) %>%
+  # Remove underscores and capitalize the first letter of each word
+  rename_with(~ toTitleCase(gsub("_", " ", .))) %>%
+  datasummary_skim(
+    fun_numeric = list(
+      Mean = mean,
+      SD = sd,
+      Min. = min,
+      Median = median,
+      Max. = max
+    )
+  )
+
+# Display the summary statistics table
+print(summary_table)
+
+```
+
+The summary statistics **\[CROSS REFERENCE HERE\]** for the numeric variables provide significant insights into the polling data. The **numeric grade** has a mean of 2.3 and a standard deviation of 0.6, suggesting that most polls are graded around a middle value, though there is moderate variability. The range, with a minimum of 1.1 and a maximum of 3.0, indicates the presence of both low-quality and higher-quality polls within the dataset.
+
+The **pollscore** averages at −0.5, with a standard deviation of 0.6. Since lower poll scores indicate more favorable outcomes for certain candidates or parties, this negative mean suggests that the polls are, on average, skewing positively towards their targets. The minimum of −1.5 and maximum of 1.7 further illustrate the wide distribution of poll results, highlighting the variability in outcomes across different polls.
+
+Looking at the **sample size**, the mean of 1962.5, accompanied by a substantial standard deviation of 2608.0, reflects significant variability in respondent numbers. With a minimum sample size of 382 and a maximum of 12,084, it is evident that while many polls are conducted with relatively small sample sizes, a few achieve much larger respondent pools. This variability can enhance the reliability of findings, particularly for those polls with larger sample sizes.
+
+Finally, the **number of supporters** reported has a mean of 949.2 and a standard deviation of 1290.0, indicating that while the average number of supporters is relatively high, there is considerable variability. The minimum value of 172 and maximum of 6042 underscores the diverse contexts in which these polls were conducted.
+
+Overall, these summary statistics emphasize the variability and range present in the polling data, which may impact the reliability and interpretation of the findings. The mixture of low and high values in numeric grade, pollscore, and sample size points to the importance of careful analysis when drawing conclusions from these polling efforts.
+
+### 4) Top 10 Pollsters and their Average Pollscores and Numeric Grades
+
+```{r}
+library(dplyr)
+
+# Get the top 10 pollsters by frequency along with their average pollscore and numeric grade
+top_pollsters <- analysis_data %>%
+  group_by(pollster) %>%           # Group by the 'pollster' variable
+  summarize(
+    Count = n(),                   # Count the number of occurrences
+    Average_Pollscore = round(mean(pollscore, na.rm = TRUE), 2),  # Average pollscore
+    Average_Numeric_Grade = round(mean(numeric_grade, na.rm = TRUE), 2),  # Average numeric grade
+    .groups = 'drop'               # Drop grouping structure for cleaner output
+  ) %>%
+  arrange(desc(Count)) %>%         # Arrange in descending order of count
+  slice_head(n = 10)                # Select the top 10 pollsters
+
+# Rename the columns to remove underscores and capitalize 'Pollster'
+colnames(top_pollsters) <- c("Pollster", "Count", "Average Pollscore", "Average Numeric Grade")
+
+# Print the top pollsters table
+print(top_pollsters)
+
+```
+
+The examination of the top 10 pollsters in **\[CROSS REFERENCE HERE\]** highlights their significance in electoral forecasting. **Morning Consult**, with the highest volume of polls (235), shows a slightly optimistic average pollscore of −0.3, indicating some reliability and validity. Conversely, **Siena/NYT** stands out with the lowest average pollscore of −1.5 and the highest numeric grade of 3.0, suggesting a rigorous methodology that enhances its credibility in predicting electoral outcomes.
+
+In contrast, **Redfield & Wilton Strategies** displays an average pollscore of 0.4, which may create a misleadingly pessimistic view of voter sentiment. This underscores the necessity of considering multiple polling sources for a nuanced understanding of electoral dynamics.
+
+The presence of several pollsters with negative scores indicates a general trend towards specific candidates, which is crucial for shaping campaign strategies. Overall, these findings reinforce the critical role of trustworthy polling in influencing public perception and political strategy during elections.
+
+### 5) Histogram of End Dates
 
 ## Graphs for Imp. Variables (relationships)
 
@@ -184,7 +257,7 @@ In the context of polling results, these findings suggest potential limitations 
 
 Some paragraphs about how we go from a phenomena in the world to an entry in the dataset.
 
-Public support for political candidates is an essential part of understanding electoral dynamics for a variety of reasons. Public polls provide insights into the preferences and beliefs of certain groups of people, usually voters in specific states or districts, and sometimes to also correlate preferences to demographic information (race, age, neighbourhood, etc).
+Public support for political candidates is an essential part of understanding electoral dynamics for a variety of reasons. Public polls provide insights into the preferences and beliefs of certain groups of people, usually voters in specific states or districts, and sometimes to also correlate preferences to demographic information (race, age, neighborhood, etc).
 
 The results help inform policy decisions, help track the likely outcomes of elections, help government officials and candidates decide where to invest time, funds, and resources to get the desired results. Polling organizations aim to capture data by surveying a representative sample of voters, free from government intervention.
 
@@ -218,7 +291,7 @@ Variables such as pollster rating and transparency score help validate the relia
 
 Each entry in the data set represents a glimpse of public opinion at a specific time and location, capturing measured support percentages alongside contextual variables such as pollster, methodology, and sample size. This extensive approach allows for an enhanced understanding of public support dynamics, facilitating informed analyses of electoral outcomes.
 
-# Polls of Polls to Forcast Winning Candidate
+# Polls of Polls to Forecast Winning Candidate
 
 ## Forecasting Approach
 
@@ -329,7 +402,7 @@ ggplot(analysis_data, aes(x = sample_size, y = pct, color = candidate_name)) +
   facet_wrap(~ candidate_name, scales = "free_y")
 ```
 
-### Distribution of support for Candiates by State
+### Distribution of support for Candidates by State
 
 ```{r}
 # Calculate mean support for each candidate in each state
