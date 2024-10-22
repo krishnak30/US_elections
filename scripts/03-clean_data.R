@@ -89,6 +89,14 @@ cleaned_data <- cleaned_data %>%
 cleaned_data <- cleaned_data %>%
   filter(end_date >= as.Date("2024-07-21"))
 
+# Calculate recency of every poll and make a column 
+
+reference_date <- max(cleaned_data$end_date, na.rm = TRUE)  # Most recent poll date
+
+analysis_data <- cleaned_data %>%
+  mutate(recency = as.numeric(reference_date - end_date))
+
+
 #### Save data ####
 
 write_parquet(cleaned_data, "data/02-analysis_data/analysis_data.parquet")
