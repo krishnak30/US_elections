@@ -1,6 +1,6 @@
 ---
 title: Forcasting US Elections using Polls-of-Polls
-subtitle: "My subtitle if needed"
+subtitle: Using a Linear Regression Model to Adjust Pollster Biases and Predict Kamala Harris' Vote Percentage at 47.78%
 author: 
   - Shamayla Durrin
   - Denise Chang 
@@ -9,7 +9,7 @@ thanks: "Code and data are available at: [https://github.com/krishnak30/US_elect
 date: today
 date-format: long
 abstract: "This paper uses a polls of polls approach to predict voter support for Kamala Harris in the 2024 U.S. election, aggregating multiple polls to reduce individual bias and improve accuracy. Through a regression model incorporating factors such as pollster, sample size, state, and recency, we predict her overall support to be 47.78%, just below the 50% threshold. Our analysis highlights the importance of poll quality and recency in understanding trends in public opinion. These findings are significant as they provide a more reliable estimate of electoral outcomes, helping to inform political strategies and public discourse."
-format: html
+format: pdf
 number-sections: true
 bibliography: references.bib
 ---
@@ -288,50 +288,6 @@ ggplot(analysis_data %>% filter(candidate_name == "Kamala Harris"), aes(x = end_
 
 ```
 
-### Political Leanings of Different State
-
-[@fig-mapinterac] provides a state-level representation of Kamala Harris's average support across the U.S., with the darker blue shades indicating states where her support is higher, and the redder tones showing where her support is lower. Gray areas represent states where we have no polling data available.
-
-The gradient highlights notable geographic trends. Harris has the strongest support in states like Vermont, Massachusetts, and New York, while states like Utah and West Virginia show considerably lower levels of support. A distinct pattern emerges in the West, where coastal states like California favor Harris more strongly, contrasting with inland states like Wyoming and Utah.
-
-This reveals that political leanings differ greatly by state, and this regional variation should be controlled for in any regression model analyzing poll data. The map serves as a useful tool for visualizing regional variations in voter support for Kamala Harris as reflected in the available polling data.
-
-```{r}
-#| warning: false
-#| message: false
-#| echo: false
-# Filter out non-continental states (Hawaii and Alaska)
-us_states_filtered <- mapping_data %>% 
-  filter(!NAME %in% c("Alaska", "Hawaii"))
-
-# Ensure correct merge between map data and Kamala's support data
-map_data_full <- left_join(us_states_filtered, mean_support_data, by = c("NAME" = "state"))
-
-# Create centroids for state labels
-state_centroids <- st_centroid(us_states_filtered)
-
-# Plot using geom_sf() for sf objects
-p <- ggplot(map_data_full) +
-  geom_sf(aes(fill = mean_support, text = paste("State:", str_to_title(NAME), "<br>Average Support:", round(mean_support, 2))), color = "white") +  # Capitalize state names
-  scale_fill_distiller(palette = "RdBu", direction = 1, na.value = "gray", name = "Kamala's Support") +  # Reverse RdBu color gradient
-  geom_text(data = state_centroids, aes(geometry = geometry, label = STUSPS), stat = "sf_coordinates", size = 2) +  # State labels
-  labs(title = "Support for Kamala Harris by State", 
-       caption = "States with no polling data are shown in gray") +
-  theme_minimal() +
-  theme(
-    legend.position = "right",
-    plot.title = element_text(hjust = 0.5),
-    panel.grid = element_blank(),  # Remove grid lines
-    axis.title = element_blank(),  # No axis titles for maps
-    axis.text = element_blank(),   # No axis labels
-    axis.ticks = element_blank()   # No axis ticks
-  )
-
-# Turn ggplot to plotly for interactivity, add hover template for better control over display
-ggplotly(p, tooltip = "text")
-
-```
-
 # Model
 
 In this section, we aim to address the inherent biases and differences present in various polling data to arrive at a robust prediction model. The core challenge lies in selecting a model with an optimal balance between complexity and fit, ensuring it accurately captures the dynamics of polling data while avoiding overfitting. To this end, we carefully evaluated different model specifications to determine the most appropriate one for our forecasting purpose.
@@ -540,95 +496,105 @@ In conclusion, while our model provides valuable predictions of Kamala Harris' s
 # Emerson College Polling Methodology (October 14-16, 2024)
 
 ## Overview
+
 Emerson College Polling, known for its extensive online polling methods, conducted a survey from October 14 to 16, 2024, targeting 1,000 likely voters. The poll measured voter preferences between Kamala Harris and Donald Trump, revealing a near tie with Harris at 50% and Trump at 49%.
 
 ## Population, Frame, and Sample
-The target population is likely voters in the U.S. elections. These voters are determined by the voters' likeliness to vote in the upcoming elections and the voter's voting history. Both of these factors are self-reported. 
+
+The target population is likely voters in the U.S. elections. These voters are determined by the voters' likeliness to vote in the upcoming elections and the voter's voting history. Both of these factors are self-reported.
 
 The sampling frame is the voters that are on the Aristotle list and on the online panel provided by CINT. Aristotle is an online supplier of voter files and CINT is a software company that connects researchers, such as Emerson, to online panels. This approach helps ensure a representative sample by accurately reflecting the electorate.
 
-The sample size is the 1,000 likely voters chosen arbitrarily from the sampling frame. Likely voters are determined by a combination of voter history, registration status, and demographic data. These factors are self-reported. 
+The sample size is the 1,000 likely voters chosen arbitrarily from the sampling frame. Likely voters are determined by a combination of voter history, registration status, and demographic data. These factors are self-reported.
 
 ## Sample Recruitment and Approach
+
 Emerson College used a mixed-mode sampling approach for its polling. Specifically, three primary modes were used to collect data for its October 14-16, 2024 poll:
 
-- MMS-to-web text surveys: Respondents were contacted via text messages sent to cell phones. These messages directed participants to complete the survey online. This method was conducted using voter lists provided by Aristotle.
+-   MMS-to-web text surveys: Respondents were contacted via text messages sent to cell phones. These messages directed participants to complete the survey online. This method was conducted using voter lists provided by Aristotle.
 
-- Interactive Voice Response (IVR): Landlines were targeted using automated phone calls where respondents could answer questions using their keypads. The contact information for this was also sourced from Aristotle’s voter lists.
+-   Interactive Voice Response (IVR): Landlines were targeted using automated phone calls where respondents could answer questions using their keypads. The contact information for this was also sourced from Aristotle’s voter lists.
 
-- Online Panel from CINT: Emerson utilized a pre-screened, opt-in online panel of voters provided by CINT.
+-   Online Panel from CINT: Emerson utilized a pre-screened, opt-in online panel of voters provided by CINT.
 
 ## Advantages and Trade-offs in Mixed-Mode Sampling
+
 The multi-mode sampling approach used in this poll has several advantages:
 
-- Wider demographic reach: Having a combination of data collection methods allows Emerson to gather responses from a broader demographic group. In this polling, MMS-to-web surveys mostly gather responses from younger voters and those who primarily use mobile devices. IVR target older and rural voters, who are more likely to respond via landlines. Online panels is more efficient in reaching tech-savvy individuals. 
+-   Wider demographic reach: Having a combination of data collection methods allows Emerson to gather responses from a broader demographic group. In this polling, MMS-to-web surveys mostly gather responses from younger voters and those who primarily use mobile devices. IVR target older and rural voters, who are more likely to respond via landlines. Online panels is more efficient in reaching tech-savvy individuals.
 
-- Cost-efficient: Automated technologies reduce the cost compared to live interviews. In a polling context, this allows for a larger sample size.
+-   Cost-efficient: Automated technologies reduce the cost compared to live interviews. In a polling context, this allows for a larger sample size.
 
 However, the trade-offs include:
 
-- Coverage bias: IVR only reaches individuals with landlines, which may skew results towards older demographics.
+-   Coverage bias: IVR only reaches individuals with landlines, which may skew results towards older demographics.
 
-- Self-selection bias: Respondents in online panels tend to be more engaged, which can lead to over-representation of politically active individuals.
+-   Self-selection bias: Respondents in online panels tend to be more engaged, which can lead to over-representation of politically active individuals.
 
 ## Non-response Handling
+
 Emerson addresses non-response using a weighting system. The data is adjusted based on key demographic variables like age, gender, race, education, and party affiliation, making the sample more representative of the electorate. Weights are applied to compensate for under- or over-represented groups, ensuring balanced results.
 
 ## Questionnaire Design
+
 The Emerson survey features a straightforward, efficient design focused on key issues and voter preferences. Strengths of the questionnaire include:
 
-- Simplicity: Clear, concise questions makes the survey easy for respondents to understand and to provide accurate answers.
+-   Simplicity: Clear, concise questions makes the survey easy for respondents to understand and to provide accurate answers.
 
-- Topical relevance: The poll zeroes in on vote preference and demographic splits, delivering timely insights during election cycles.
+-   Topical relevance: The poll zeroes in on vote preference and demographic splits, delivering timely insights during election cycles.
 
 However, weaknesses include:
 
-- Lack of nuance: While the survey captures basic preferences, it does not delve deeply into voters' motivations or the factors driving their choices.
+-   Lack of nuance: While the survey captures basic preferences, it does not delve deeply into voters' motivations or the factors driving their choices.
 
-- Mode limitations: Different survey modes can affect how respondents engage with the questions. This can potentially influence the depth and accuracy of voter responses.
+-   Mode limitations: Different survey modes can affect how respondents engage with the questions. This can potentially influence the depth and accuracy of voter responses.
 
 ## Conclusion
-Emerson College Polling's mixed-mode methodology is effective in balancing cost with broad demographic reach. Its weighting techniques contribute to reliable and accurate results despite non-responses. While the use of multiple survey modes increases population representation, possible biases—such as lack of nuance and mode effects need to be taken into consideration when interpreting results. 
+
+Emerson College Polling's mixed-mode methodology is effective in balancing cost with broad demographic reach. Its weighting techniques contribute to reliable and accurate results despite non-responses. While the use of multiple survey modes increases population representation, possible biases—such as lack of nuance and mode effects need to be taken into consideration when interpreting results.
 
 In sum, this method is a strong predictor of election outcomes and continues to adapt to the evolving challenges of modern polling.
 
 # Idealized Methodology
 
 ## Overview
-This methodology outlines an election forecasting plan with a budget of $100,000. Heavily inspired by TIPP Insights and Emerson College's hybrid approaches, the survey methodology balances cost-efficiency and data accuracy by using different modes of data collection and wide demographic reach. 
+
+This methodology outlines an election forecasting plan with a budget of \$100,000. Heavily inspired by TIPP Insights and Emerson College's hybrid approaches, the survey methodology balances cost-efficiency and data accuracy by using different modes of data collection and wide demographic reach.
 
 This forecasting plan will predict the popular vote and Electoral College outcomes, emphasizing key swing states and underrepresented voter groups.
 
 ## Sampling Approach
+
 This idealized methodology uses a multi-mode hybrid sampling approach. This allows the use of both probability-based and non-probability-based methods:
 
-- Probability-based methods:
+-   Probability-based methods:
 
-  - Live phone interviews (landline and cell): As used by TIPP, live phone interviews is a direct and personal method of collecting responses. Voter lists would be sourced from Aristotle to ensure we contact likely voters. This mode reaches older voters and voters with less internet connection. 
-  
-  - Interactive Voice Response (IVR): Similar to Emerson’s approach, IVR for landline users balances costs and ensures demographic representation, particularly among older or less tech-savvy populations. This method captures quick responses and is less expensive than live interviews.
+    -   Live phone interviews (landline and cell): As used by TIPP, live phone interviews is a direct and personal method of collecting responses. Voter lists would be sourced from Aristotle to ensure we contact likely voters. This mode reaches older voters and voters with less internet connection.
 
-- Non-probability methods:
+    -   Interactive Voice Response (IVR): Similar to Emerson’s approach, IVR for landline users balances costs and ensures demographic representation, particularly among older or less tech-savvy populations. This method captures quick responses and is less expensive than live interviews.
 
-  - MMS-to-web (mobile): Following Emerson’s MMS-to-web strategy, we would send multimedia messages to likely voters’ cell phones, encouraging them to complete an online survey. This method works well for younger, mobile-first voters, helping fill in gaps where traditional methods might miss.
-  
-  - Online panel recruitment via CINT: To mirror TIPP’s online panel approach, a portion of the survey would be conducted via an opt-in panel of pre-screened voters from CINT, capturing tech-savvy respondents. CINT’s platform ensures that different voter groups, including hard-to-reach groups, are represented in the polling.
+-   Non-probability methods:
+
+    -   MMS-to-web (mobile): Following Emerson’s MMS-to-web strategy, we would send multimedia messages to likely voters’ cell phones, encouraging them to complete an online survey. This method works well for younger, mobile-first voters, helping fill in gaps where traditional methods might miss.
+
+    -   Online panel recruitment via CINT: To mirror TIPP’s online panel approach, a portion of the survey would be conducted via an opt-in panel of pre-screened voters from CINT, capturing tech-savvy respondents. CINT’s platform ensures that different voter groups, including hard-to-reach groups, are represented in the polling.
 
 ## Recruitment Strategy
+
 By using Aristotle’s voter lists and CINT's platform as a sampling frame, the sample consists of likely voters based on registration status and past voting behavior. Quota sampling would be used to match the demographic profile of the U.S. electorate. This ensures that respondents in the sample reflect key demographic variables such as age, gender, race, and education level.
 
 We would oversample key swing states like Pennsylvania, Wisconsin, and Florida. Key swing states are states where there is no overwhelming support for a particular candidate or political party. The outcome in these states often determine the overall result of the election, making them critical in securing a win in the Electoral College. Oversampling these states allows a more accurate forecasting in these battlegrounds, which are critical for predicting the Electoral College outcome.
 
 ## Data Validation
 
-Given that the data is collected in a hybrid format, we would use duplicate detection methods via IP addresses or phone numbers to eliminate multiple responses from the same individual. Also, we would implement attention checks to identify respondents who are not fully engaged. Both duplicate respondents and unengaged respondents bias results, and should be removed from the data set. 
+Given that the data is collected in a hybrid format, we would use duplicate detection methods via IP addresses or phone numbers to eliminate multiple responses from the same individual. Also, we would implement attention checks to identify respondents who are not fully engaged. Both duplicate respondents and unengaged respondents bias results, and should be removed from the data set.
 
 Following TIPP’s iterative weighting process, the data will be weighted to ensure that the sample aligns with key demographics (race, gender, education) based on census data.
 
 ## Conclusion
-By combining TIPP’s live phone/IVR hybrid and Emerson College’s mixed-mode survey methods, this idealized methodology captures diverse voter demographics. It uses both probability-based and non-probability-based sampling methods to forecast the 2024 U.S. Presidential Election. 
 
-A link to the survey can be found at: https://forms.gle/haGLaQBPQhrXE6Xa7 
-\newpage
+By combining TIPP’s live phone/IVR hybrid and Emerson College’s mixed-mode survey methods, this idealized methodology captures diverse voter demographics. It uses both probability-based and non-probability-based sampling methods to forecast the 2024 U.S. Presidential Election.
+
+A link to the survey can be found at: https://forms.gle/haGLaQBPQhrXE6Xa7 \newpage
 
 # References
