@@ -261,11 +261,13 @@ We would oversample key swing states like Pennsylvania, Wisconsin, and Florida. 
 
 ## Data Validation
 
-Given that the data is collected in a hybrid format, we would use duplicate detection methods via IP addresses or phone numbers to eliminate multiple responses from the same individual. Also, we would implement attention checks to identify respondents who are not fully engaged. Both duplicate respondents and unengaged respondents biases results, and should be removed from the data set. 
+Given that the data is collected in a hybrid format, we would use duplicate detection methods via IP addresses or phone numbers to eliminate multiple responses from the same individual. Also, we would implement attention checks to identify respondents who are not fully engaged. Both duplicate respondents and unengaged respondents bias results, and should be removed from the data set. 
 
 Following TIPP’s iterative weighting process, the data will be weighted to ensure that the sample aligns with key demographics (race, gender, education) based on census data.
 
 ## Conclusion
 By combining TIPP’s live phone/IVR hybrid and Emerson College’s mixed-mode survey methods, this idealized methodology captures diverse voter demographics. It uses both probability-based and non-probability-based sampling methods to forecast the 2024 U.S. Presidential Election. 
+
+A link to the survey can be found at: https://forms.gle/haGLaQBPQhrXE6Xa7 
 
 # References
