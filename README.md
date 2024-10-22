@@ -10,12 +10,12 @@ The raw data was downloaded from Project 538 at the following link: https://proj
 
 The repo is structured as:
 
--   `data/01-raw_data` contains the raw data obtained from Project 538.
+-   `data/01-raw_data` contains the raw data obtained from fivethirtyeight.
 -   `data/02-analysis_data` contains the cleaned dataset that was constructed.
--   `data/03-mapping_data/US` contains an interactive map representing support for Kamala Harris across different states. 
+-   `data/03-mapping_data` contains data for mapping support for kamala. 
 -   `models` contains the fitted models. 
 -   `other` contains relevant literature, details about LLM chat interactions, and sketches.
--   `paper` contains the files used to generate the paper, including the Quarto document and reference bibliography file, as well as the PDF of the paper. The paper is also generated in html in `paper/paper.html`.
+-   `paper` contains the files used to generate the paper, including the Quarto document and reference bibliography file, as well as the PDF of the paper. The paper is also generated in html in `paper/paper.html` to show the interactive map.
 -   `scripts` contains the R scripts used to simulate, download and clean the data.
 
 
