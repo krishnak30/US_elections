@@ -1,6 +1,6 @@
 ---
-title: Forcasting 2024 U.S. Election using Polls-of-Polls
-subtitle: Using a Linear Regression Model to Adjust Pollster Biases and Predict Kamala Harris' Vote Percentage at 47.78%
+title: Forecasting 2024 U.S. Election using Polls-of-Polls
+subtitle: Using a Linear Regression Model to Adjust Pollster Biases and Predict Kamala Harris Vote Percentage at 47.78%
 author: 
   - Shamayla Durrin
   - Denise Chang 
@@ -9,8 +9,12 @@ thanks: "Code and data are available at: [https://github.com/krishnak30/US_elect
 date: today
 date-format: long
 abstract: "This paper uses a polls of polls approach to predict voter support for Kamala Harris in the 2024 U.S. election, aggregating multiple polls to reduce individual bias and improve accuracy. Through a regression model incorporating factors such as pollster, sample size, state, and recency, we predict her overall support to be 47.78%, just below the 50% threshold. Our analysis highlights the importance of poll quality and recency in understanding trends in public opinion. These findings are significant as they provide a more reliable estimate of electoral outcomes, helping to inform political strategies and public discourse."
-format: pdf
-number-sections: true
+format: 
+  pdf:
+    documentclass: article
+    number-sections: true
+    header-includes:
+      - \usepackage{pdfpages}
 bibliography: references.bib
 ---
 
@@ -61,7 +65,7 @@ The dataset also includes important measures of pollster performance, such as nu
 
 ## Data Cleaning
 
-The raw data for this project, sourced from FiveThirtyEight, [@FiveThirtyEight] underwent a series of cleaning steps to prepare it for analysis. Initially, duplicate rows were removed to ensure that only unique observations remained, facilitated by the janitor package [@janitor]. A new binary variable, 'national', was created to indicate whether a poll was conducted at the national or state level. Missing values in the 'state' column were replaced with "Not Applicable," and numeric grades were evaluated to filter out low-quality pollsters, keeping only those with a numeric grade above 1. This cutoff was selected to retain mid to high-level pollsters for more reliable results. These steps were performed using functions from the dpylr package \[\@dplyr\]. Furthermore, dates were standardized and converted into a proper format for analysis using the lubridate package \[\@lubridate\]. Polls related to Kamala Harris were retained for further analysis, and percentage support values were transformed into actual numbers of supporters based on sample size. Additionally, pollster counts below five were excluded to focus on more reliable data sources. Polls regarding Kamala Harris were filtered to include only those conducted after her official candidacy announcement on July 21, 2024, ensuring the data reflects post-announcement public sentiment.The cleaned dataset was saved in Parquet format for efficient storage and retrieval, using the arrow package \[\@arrow\].
+The raw data for this project, sourced from FiveThirtyEight, [@FiveThirtyEight] underwent a series of cleaning steps to prepare it for analysis. Initially, duplicate rows were removed to ensure that only unique observations remained, facilitated by the `janitor` package [@janitor]. A new binary variable, 'national', was created to indicate whether a poll was conducted at the national or state level. Missing values in the 'state' column were replaced with "Not Applicable," and numeric grades were evaluated to filter out low-quality pollsters, keeping only those with a numeric grade above 1. This cutoff was selected to retain mid to high-level pollsters for more reliable results. These steps were performed using functions from the `dpylr` package [@dplyr]. Furthermore, dates were standardized and converted into a proper format for analysis using the `lubridate` package [@lubridate]. Polls related to Kamala Harris were retained for further analysis, and percentage support values were transformed into actual numbers of supporters based on sample size. Additionally, pollster counts below five were excluded to focus on more reliable data sources. Polls regarding Kamala Harris were filtered to include only those conducted after her official candidacy announcement on July 21, 2024, ensuring the data reflects post-announcement public sentiment.The cleaned dataset was saved in Parquet format for efficient storage and retrieval, using the `arrow` package [@arrow].
 
 ### Summary Statistics of Variables of Interest
 
@@ -158,7 +162,7 @@ kable(top_pollsters, format = "markdown", caption = "Top 10 Pollsters by Frequen
 
 This table lists the top 10 pollsters based on the frequency of polls they conducted. Morning Consult leads with 235 polls, followed by Siena/NYT and Redfield & Wilton Strategies with 94 and 88 polls, respectively. The table also shows each pollster's average poll score and average numeric grade. Most pollsters have negative poll scores, indicating a lower perceived reliability, except for Redfield & Wilton Strategies. However, the numeric grades vary, with Siena/NYT, YouGov, and Emerson receiving relatively high grades around 3, while others like TIPP and Redfield & Wilton Strategies are rated slightly lower.
 
-# Forcasting Election Outcome through Pooling Polls
+# Forecasting Election Outcome through Pooling Polls
 
 ## Forecasting Approach
 
@@ -170,7 +174,7 @@ In our approach, we will employ linear modeling of voter support percentage (pct
 
 ### Support for Kamala Harris by Sample Size and Polling Level
 
-\[\@fig-sample\] suggests that the relationship between support for Kamala Harris and sample size shows a slight positive trend, indicating a small increase in support as sample sizes grow. Both national (blue) and state (green) polls reflect this upward trend, although the effect is minimal. Since voting outcomes often depend on small margins, this subtle increase in support with larger sample sizes could still be relevant in predicting overall support.
+[@fig-sample] suggests that the relationship between support for Kamala Harris and sample size shows a slight positive trend, indicating a small increase in support as sample sizes grow. Both national (blue) and state (green) polls reflect this upward trend, although the effect is minimal. Since voting outcomes often depend on small margins, this subtle increase in support with larger sample sizes could still be relevant in predicting overall support.
 
 ```{r}
 #| warning: false
@@ -257,7 +261,7 @@ ggplot(top5_data, aes(x = pollster, y = pct, fill = pollster)) +
 
 ### Support for Kamala Harris Based on Recency of Polls and Pollster Quality
 
-In \[\@fig-enddate\], we observe a slight increasing trend in support for Kamala Harris as the end date of polls progresses towards October. This may indicate a gradual improvement in her polling performance over time. The color gradient, reflecting the pollster's error and bias (Pollscore), reveals variations in bias: greener points represent more negative biases, while redder points indicate more positive biases.
+In [@fig-enddate], we observe a slight increasing trend in support for Kamala Harris as the end date of polls progresses towards October. This may indicate a gradual improvement in her polling performance over time. The color gradient, reflecting the pollster's error and bias (Pollscore), reveals variations in bias: greener points represent more negative biases, while redder points indicate more positive biases.
 
 While the recency of the polls shows a stable trend in Harris's support, the wide distribution of bias (Pollscore) values suggests that pollster quality can vary substantially. These variations could influence the model's predictions if left unaddressed. Hence, including both recency and pollster quality as predictor variables in the model might be valuable to account for such variations. Further model diagnostics and validation will help decide if these variables are significant.
 
@@ -265,7 +269,7 @@ While the recency of the polls shows a stable trend in Harris's support, the wid
 #| warning: false
 #| message: false
 #| echo: false
-#| label: fig-mapinterac
+#| label: fig-enddate
 #| fig-cap: "Average Support for Kamala Harris in Different States estimated by Polls"
 
 # Define the color gradient based on pollscore
@@ -444,8 +448,6 @@ weighted_support <- sum(predict_data$fitted_values * predict_data$weight)
 
 ```
 
-### Prediction
-
 To predict Kamala Harris' overall support, we used a weighted average approach based on the quality of each poll. The weights are calculated using each poll's `numeric_grade`, which reflects the reliability and transparency of the polling methodology.
 
 We define the weight for each pollster $w_i$ as follows:
@@ -596,6 +598,11 @@ Following TIPP’s iterative weighting process, the data will be weighted to ens
 
 By combining TIPP’s live phone/IVR hybrid and Emerson College’s mixed-mode survey methods, this idealized methodology captures diverse voter demographics. It uses both probability-based and non-probability-based sampling methods to forecast the 2024 U.S. Presidential Election.
 
-A link to the survey can be found at: https://forms.gle/haGLaQBPQhrXE6Xa7 \newpage
+A link to the survey can be found at: https://forms.gle/haGLaQBPQhrXE6Xa7 
+
+# Copy of the Survey
+\includepdf[pages=-]{../other/surveyfiles/SurveyCopy.pdf}
+
+\newpage
 
 # References
