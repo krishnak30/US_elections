@@ -12,7 +12,7 @@
 library(tidyverse)
 library(janitor)
 library(arrow)
-library(lubridate)
+
 raw_data <- read_csv("data/01-raw_data/raw_data.csv")
 
 #### Data Cleaning ####
