@@ -1,5 +1,5 @@
 ---
-title: Forcasting US Elections using Polls-of-Polls
+title: Forcasting 2024 U.S. Election using Polls-of-Polls
 subtitle: Using a Linear Regression Model to Adjust Pollster Biases and Predict Kamala Harris' Vote Percentage at 47.78%
 author: 
   - Shamayla Durrin
@@ -19,20 +19,21 @@ bibliography: references.bib
 #| warning: false
 #| message: false
 
+#### Workspace set up ####
 library(psych)
 library(tidyverse)
 library(arrow)
 library(here)
 library(ggplot2)
 library(kableExtra)
-library(sf)
-library(tidyverse)
 library(plotly)
 library(RColorBrewer)
 library(stringr)
 library(modelsummary)
 library(broom)
 library(sf)
+
+# Load data
 analysis_data <- read_parquet(here("data/02-analysis_data/analysis_data.parquet"))
 mapping_data <- st_read(here("data/03-mapping_data/US"))
 mean_support_data <- read_parquet(here("data/02-analysis_data/map_data.parquet"))
@@ -48,7 +49,7 @@ This paper contributes to the field of election forecasting by emphasizing the i
 
 # Data
 
-### Measurement
+## Measurement
 
 In the dataset of our analysis, the process of measurement begins by capturing real-world public opinion through surveys. Polling organizations transform this observed phenomenon into structured data by recording support percentages, pollster details, and methodological choices, thus turning public sentiment into quantifiable entries in the dataset.
 
@@ -58,9 +59,9 @@ Polling organizations use various methods, such as App panels, IVR (Interactive 
 
 The dataset also includes important measures of pollster performance, such as numeric grades, poll scores, and transparency scores. These metrics are calculated by considering bias, race difficulty, predictive error, and transparency, allowing us to assess the accuracy of each poll. The "pollscore," for instance, reflects a pollster’s past performance and reliability, adjusted for potential biases.
 
-### Data Cleaning
+## Data Cleaning
 
-The raw data for this project, sourced from FiveThirtyEight, [@FiveThirtyEight] underwent a series of cleaning steps to prepare it for analysis. Initially, duplicate rows were removed to ensure that only unique observations remained, facilitated by the janitor package \[\@janitor\]. A new binary variable, 'national', was created to indicate whether a poll was conducted at the national or state level. Missing values in the 'state' column were replaced with "Not Applicable," and numeric grades were evaluated to filter out low-quality pollsters, keeping only those with a numeric grade above 1. This cutoff was selected to retain mid to high-level pollsters for more reliable results. These steps were performed using functions from the dpylr package \[\@dplyr\]. Furthermore, dates were standardized and converted into a proper format for analysis using the lubridate package \[\@lubridate\]. Polls related to Kamala Harris were retained for further analysis, and percentage support values were transformed into actual numbers of supporters based on sample size. Additionally, pollster counts below five were excluded to focus on more reliable data sources. Polls regarding Kamala Harris were filtered to include only those conducted after her official candidacy announcement on July 21, 2024, ensuring the data reflects post-announcement public sentiment.The cleaned dataset was saved in Parquet format for efficient storage and retrieval, using the arrow package \[\@arrow\].
+The raw data for this project, sourced from FiveThirtyEight, [@FiveThirtyEight] underwent a series of cleaning steps to prepare it for analysis. Initially, duplicate rows were removed to ensure that only unique observations remained, facilitated by the janitor package [@janitor]. A new binary variable, 'national', was created to indicate whether a poll was conducted at the national or state level. Missing values in the 'state' column were replaced with "Not Applicable," and numeric grades were evaluated to filter out low-quality pollsters, keeping only those with a numeric grade above 1. This cutoff was selected to retain mid to high-level pollsters for more reliable results. These steps were performed using functions from the dpylr package \[\@dplyr\]. Furthermore, dates were standardized and converted into a proper format for analysis using the lubridate package \[\@lubridate\]. Polls related to Kamala Harris were retained for further analysis, and percentage support values were transformed into actual numbers of supporters based on sample size. Additionally, pollster counts below five were excluded to focus on more reliable data sources. Polls regarding Kamala Harris were filtered to include only those conducted after her official candidacy announcement on July 21, 2024, ensuring the data reflects post-announcement public sentiment.The cleaned dataset was saved in Parquet format for efficient storage and retrieval, using the arrow package \[\@arrow\].
 
 ### Summary Statistics of Variables of Interest
 
