@@ -415,7 +415,6 @@ support_by_state <- analysis_data %>%
 #| message: false
 #| echo: false
 #| include: false
-# Load the shapefile (adjust path as needed)
 
 map_data <- us_states %>%
   left_join(support_by_state, by = c("NAME" = "state")) 
