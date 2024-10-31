@@ -1,0 +1,2 @@
+load("/Users/shamayladurrin/Desktop/STA304/PollsofPollsUSElection2024/models/first_model.rds")
+load("/Users/shamayladurrin/Desktop/STA304/PollsofPollsUSElection2024/models/model_1.rds")

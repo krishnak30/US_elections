@@ -13,7 +13,7 @@ library(tidyverse)
 library(janitor)
 library(arrow)
 
-raw_data <- read_csv("data/01-raw_data/raw_data.csv")
+raw_data <- read_csv(here("data/01-raw_data/raw_data.csv"))
 
 #### Data Cleaning ####
 
@@ -33,7 +33,7 @@ cleaned_data <- cleaned_data %>%
 
 # Keep only the relevant columns
 cleaned_data <- cleaned_data %>%
-  select(poll_id, pollster_id, pollster, numeric_grade, pollscore, state, start_date, national, end_date, sample_size, population, candidate_name, pct)
+  select(poll_id, pollster, numeric_grade, pollscore, state, national, end_date, sample_size,candidate_name, pct)
 
 # Remove any rows that have missing values in any column
 cleaned_data <- cleaned_data %>% drop_na()
@@ -49,15 +49,9 @@ cutoffgrade <- 1 # this cutoff was selected  to retain mid to high quality polls
 cleaned_data <- cleaned_data %>% filter(numeric_grade >= cutoffgrade)
 
 
-#Filter the dataset to keep only rows with Kamala Harris or Donald Trump
-
-cleaned_data <- cleaned_data %>%
-  filter(candidate_name %in% c("Kamala Harris"))
-
 # Ensure the start_date and end_date columns are in date format
 cleaned_data <- cleaned_data %>%
   mutate(
-    start_date = parse_date_time(start_date, orders = c("mdy", "ymd")),
     end_date = parse_date_time(end_date, orders = c("mdy", "ymd"))
   )
 
@@ -77,12 +71,7 @@ cleaned_data <- cleaned_data %>%
   filter(n() >= 5) %>%
   ungroup()
 
-# Convert percentage to actual number for modelling
 
-cleaned_data <- cleaned_data %>%
-  mutate(
-    num_support = round((pct / 100) * sample_size, 0)  
-  )
 
 # Filter Observatons after Harris was declared 
 
@@ -91,28 +80,17 @@ cleaned_data <- cleaned_data %>%
 
 # Calculate recency 
 
-reference_date <- max(analysis_data$end_date, na.rm = TRUE)  # Most recent poll date
+reference_date <- max(cleaned_data$end_date, na.rm = TRUE)  # Most recent poll date
 
 # Calculate recency in days
-analysis_data <- analysis_data %>%
+cleaned_data <- cleaned_data %>%
   mutate(recency = as.numeric(reference_date - end_date))
 
-# Check the dataset after adding recency
-head(analysis_data)
+#Filter the dataset to keep only rows with Kamala Harris or Donald Trump
+
+analysis_data <- cleaned_data %>%
+  filter(candidate_name %in% c("Kamala Harris", "Donald Trump"))
 
 #### Save data ####
+write_parquet(analysis_data, here("data", "02-analysis_data", "analysis_data.parquet"))
 
-write_parquet(cleaned_data, "data/02-analysis_data/analysis_data.parquet")
-
-#### Creating Mapping Data ####
-
-map_data <- raw_data %>%
-  filter(candidate_name == "Kamala Harris") %>%  # Filter for Kamala Harris
-  distinct() %>%  # Remove duplicates
-  select(state, pct) %>%  # Keep only the 'state' and 'pct' columns
-  group_by(state) %>%  # Group by state
-  summarise(mean_support = mean(pct, na.rm = TRUE))  # Calculate the mean pct for each state
-
-#### Save data ####
-
-write_parquet(map_data, "data/02-analysis_data/map_data.parquet")
