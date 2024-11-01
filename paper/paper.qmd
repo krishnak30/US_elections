@@ -61,7 +61,6 @@ This paper is organized as follows: In \ref{sec-data}, we clean the data, explor
 
 \vspace{0.7cm} 
 
-
 # Data {#sec-data}
 
 \vspace{0.7cm} 
@@ -725,8 +724,6 @@ battleground_table <- state_support_data %>%
 # Display the table using kable
 knitr::kable(battleground_table)
 
-
-
 ```
 
 USAFacts[@usafacts],FiveThirtyEight[@FiveThirtyEight] and many other polling websites are calling Arizona, Georgia, Michigan, Pennsylvania, Wisconsin, North Carolina, Nevada the 'swing states' of the 2024 presidential election.Polling in swing states is crucial for election predictions because these states, with their historically close voting margins, often determine the overall outcome by tipping the electoral balance toward one candidate. @tbl-battleground-states summarizes the predicted support percentages for Kamala Harris and Donald Trump in key battleground states, along with the predicted winner and the support margin. The data shows close margins in these states, with some like Arizona and Georgia leaning slightly towards Trump, while others such as Michigan and Pennsylvania favor Harris by narrow margins. The support margin column highlights the competitiveness of these states, with all margins below 2.2%, indicating highly contested races.
@@ -838,7 +835,7 @@ A link to the survey can be found at: https://forms.gle/haGLaQBPQhrXE6Xa7
 #| warning: false
 #| message: false
 #| label: fig-dgplotone
-#| 
+
 knitr::include_graphics(here("other", "graphs", "diagnostic_plot_model3.png"))
 ```
 
@@ -857,7 +854,7 @@ The diagnostic plots for Model 3ni sgiven in [@fig-dgplotone]. We notice the fol
 #| warning: false
 #| message: false
 #| label: fig-dgplottwo
-#| 
+
 knitr::include_graphics(here("other", "graphs", "diagnostic_plot_model6.png"))
 ```
 
