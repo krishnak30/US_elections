@@ -238,8 +238,6 @@ combined_plot
 
 @fig-reli shows the distribution of Numeric Grade (left) and Pollscore (right) across polling organizations. The Numeric Grade distribution shows that most pollsters are rated between 1.5 and 3, with peaks around 2.0 and 2.5, indicating a concentration of pollsters with moderate to high reliability scores. In contrast, the Pollscore distribution, where lower values indicate higher reliability, shows a range primarily between -1.5 and 0, with a notable peak around -0.5. This suggests that while many polls demonstrate relatively low bias, there is still variability in reliability across organizations. The distinction between these two metrics emphasizes the need to consider both quality (Numeric Grade) and potential systematic bias (Pollscore) when weighting polls in the model.
 
-\vspace{0.7cm}
-
 ### Distribution of Polls by Poll Type and Candidate
 
 @fig-pie illustrates the distribution of polls between candidates and poll types. The left chart shows that the majority of polls are conducted at the state level, with a smaller portion being national. The right chart shows that polling is almost evenly split between Kamala Harris and Donald Trump. This distribution underscores the model’s balanced approach to capturing state-level nuances as well as broader national trends, providing a comprehensive view of candidate support across different contexts
@@ -309,7 +307,7 @@ ggplot(filtered_data, aes(x = as.Date(end_date), y = pct, color = candidate_name
   geom_point(alpha = 0.3, size = 1.5) +
   geom_smooth(method = "loess", se = TRUE, span = 0.2) +
   scale_color_manual(values = c("Kamala Harris" = "steelblue", "Donald Trump" = "indianred")) +
-  labs(x = "Date", y = "Support (%)", title = "Support Trends for Kamala Harris and Donald Trump") +
+  labs(x = "Date", y = "Support (%)") +
   theme_minimal() +
   theme(
     legend.position = "right",
