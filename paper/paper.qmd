@@ -57,17 +57,12 @@ The estimand of this study is the level of voter support for each candidate, Kam
 
 This paper contributes to the field of election forecasting by emphasizing the importance of poll quality and recency in prediction models. By focusing on battleground states where the support margins are particularly close, our approach highlights the areas where campaign strategies and voter turnout efforts may have the greatest impact. This could provides insights for political strategists, media analysts, and the general public by offering a nuanced view of the electoral landscape.
 
-This paper is organized as follows: In \ref{sec-data}, we clean the data, explore summary statistics, plot distributions of key variables, and examine relationships between variables. In \ref{sec-model}, we discuss our forecasting approach, model selection, justification for the chosen model, and the mechanism of deriving poll weights based on pollster reliability, ultimately presenting our predictions. Finally, in \ref{sec-discussion}, we address the broader implications of our findings, acknowledge limitations, and suggest directions for future work. \vspace{0.7cm} \# Data {#sec-data} \vspace{0.7cm} \## Measurement
+This paper is organized as follows: In \ref{sec-data}, we clean the data, explore summary statistics, plot distributions of key variables, and examine relationships between variables. In \ref{sec-model}, we discuss our forecasting approach, model selection, justification for the chosen model, and the mechanism of deriving poll weights based on pollster reliability, ultimately presenting our predictions. Finally, in \ref{sec-discussion}, we address the broader implications of our findings, acknowledge limitations, and suggest directions for future work. 
+\vspace{0.7cm} 
 
-In the dataset of our analysis, the process of measurement begins by capturing real-world public opinion through surveys. Polling organizations transform this observed phenomenon into structured data by recording support percentages, pollster details, and methodological choices, thus turning public sentiment into quantifiable entries in the dataset.
+# Data {#sec-data} 
 
-Public opinion polls are essential for understanding voter preferences and electoral dynamics, providing data that informs policy decisions and campaign strategies. Our data set captures public support for candidates at specific times, along with information on methodologies, sample sizes, and pollster ratings.
-
-Polling organizations use various methods, such as App panels, IVR (Interactive Voice Response), Live phone calls, Text-to-web systems etc. These methods can influence the validity and reliability of results, with larger sample sizes generally yielding more reliable estimates. Some methods, like live phone interviews, may be seen as more trustworthy than others.
-
-The dataset also includes important measures of pollster performance, such as numeric grades, poll scores, and transparency scores. These metrics are calculated by considering bias, race difficulty, predictive error, and transparency, allowing us to assess the accuracy of each poll. The "pollscore," for instance, reflects a pollster’s past performance and reliability, adjusted for potential biases.
-
-\vspace{0.7cm}
+\vspace{0.7cm} 
 
 ## Data Cleaning
 
@@ -75,31 +70,31 @@ The raw data for this project, sourced from FiveThirtyEight, [@FiveThirtyEight] 
 
 ## Explorations of Variables of Interest
 
-### Summary Statistics of Key Variables
+### Summary Statistics of Key Variables and Measurement Method
 
 \vspace{0.7cm}
 
-For the purposes of analysis in this paper, only a subset of variables was selected. Two additional variable, national and state, was created using the existing 'state' and 'end date' variable. A short description of each variable of interest is given below.
+For the purposes of analysis in this paper, only a subset of variables was selected. Two additional variable, national and state, was created using the existing 'state' and 'end date' variable. A short description of each variable of interest and their respective measurement methods is given below.
 
--   *Pollster*: The name of the polling organization conducting the poll (e.g., YouGov, RMG Research). This variable helps adjust for poll-specific biases.
+-   *Pollster*: The name of the polling organization conducting the poll (e.g., YouGov, RMG Research). This variable helps adjust for poll-specific biases. Every pollster that publicly published a scientific poll about the 2024 U.S. Presidential Election is included in the data set. The value measured for this variable is the name that appears in the scientific poll [@538_methodology].
 
--   *Numeric Grade*: A numeric rating given to the pollster, representing the quality or reliability of the organization (e.g., 3.0), with higher grades indicating more reliable pollsters.
+-   *Numeric Grade*: A numeric rating given to the pollster, representing the accuracy and methodological transparency of the organization (e.g., 3.0), with higher grades indicating more reliable pollsters. The value of this variable is calculated by the 538 team. All national and state-level polls that were conducted in 1998 or later are considered to determine and to assign a numeric grade to each pollster [@538_morris].
 
--   *Pollscore*: A score that reflects the reliability of each pollster, capturing their historical accuracy and any systematic bias. Negative values indicate better predictive accuracy.
+-   *Pollscore*: A score that reflects the reliability of each pollster, capturing their historical accuracy and biases. Negative values indicate better predictive accuracy, and rewards pollsters who are accurate and precise. This variable is calculated by aggregating predictive error and predictive bias together [@538_morris]. Predictive error is the difference between expectations and reality [@def_pred_error] and predictive bias is the systematic bias introduced in the methodology [@def_pred_bias].
 
--   *State*: The U.S. state where the poll was conducted, allowing for analysis of regional differences in candidate support.
+-   *State*: The U.S. state where the poll was conducted, allowing for analysis of regional differences in candidate support. The value measured for this variable is the primary state that appears in the scientific poll's methodology [@538_methodology].
 
 -   *National*: A binary variable indicating whether the poll is national (1 for national polls, 0 for state polls).
 
--   *End Date*: The date the poll ended, reflecting the currency of the data.
+-   *End Date*: The date the poll ended, reflecting the currency of the data. This variable is taken from the publication, and is the last date for which the survey was active [@538_methodology].
 
--   *Sample Size*: The total number of respondents in the poll.
+-   *Sample Size*: The total number of respondents in the poll. This is measure by the number of completed surveys [@538_methodology].
 
 -   *Candidate Name*: The name of the candidate being polled (e.g., Kamala Harris or Donald Trump), identifying the focus of each poll result.
 
 -   *Pct (Percentage)*: The percentage of respondents in the poll who support the specified candidate.
 
--   *Recency*: This variable measures how recent each poll is. It was calculated by subtracting the end date of the poll from the end date of the most recent poll.
+-   *Recency*: This variable measures how recent each poll is. This variable is calculated by subtracting the end date of the poll from the end date of the most recent poll.
 
 \newpage
 
