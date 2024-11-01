@@ -5,8 +5,8 @@
 # Contact: krishna.kumar@mail.utoronto.ca
 # License: MIT
 # Pre-requisites: 
-  # - The `tidyverse` package must be installed and loaded
-  # - 00-simulate_data.R must have been run
+  # - 00-install_packages.R
+  # - 00-simulate_data.R 
 
 #### Workspace setup ####
 library(tidyverse)

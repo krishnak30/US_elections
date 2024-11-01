@@ -4,7 +4,7 @@
 # Date: 30-10-2024
 # Contact: shamayla.islam@mail.utoronto.ca
 # License: MIT
-# Pre-requisites: Libraries DiagrammeR, DiagrammeRsvg, and rsvg must be installed.
+# Pre-requisites: 00-install_packages.R
 # Additional Notes: This chunk saves the DAG as a PNG file to the specified directory for use in the main report.
 
 # Load necessary libraries
