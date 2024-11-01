@@ -4,14 +4,15 @@
 # Date: October 19 2024
 # Contact: krishna.kumar@mail.utoronto.ca
 # License: MIT
-# Pre-requisites: 
-  # - 00-install_packages.R
-  # - 00-simulate_data.R 
+# Pre-requisites:
+# - 00-install_packages.R
+# - 00-simulate_data.R
 
 #### Workspace setup ####
 library(tidyverse)
 
-analysis_data <- read_csv("data/00-simulated_data/simulated_data.csv")
+analysis_data <-
+  read_csv("data/00-simulated_data/simulated_data.csv")
 
 # Test if the data was successfully loaded
 if (exists("analysis_data")) {
@@ -45,9 +46,17 @@ if (n_distinct(analysis_data$division) == nrow(analysis_data)) {
 }
 
 # Check if the 'state' column contains only valid Australian state names
-valid_states <- c("New South Wales", "Victoria", "Queensland", "South Australia", 
-                  "Western Australia", "Tasmania", "Northern Territory", 
-                  "Australian Capital Territory")
+valid_states <-
+  c(
+    "New South Wales",
+    "Victoria",
+    "Queensland",
+    "South Australia",
+    "Western Australia",
+    "Tasmania",
+    "Northern Territory",
+    "Australian Capital Territory"
+  )
 
 if (all(analysis_data$state %in% valid_states)) {
   message("Test Passed: The 'state' column contains only valid Australian state names.")
@@ -56,7 +65,8 @@ if (all(analysis_data$state %in% valid_states)) {
 }
 
 # Check if the 'party' column contains only valid party names
-valid_parties <- c("Labor", "Liberal", "Greens", "National", "Other")
+valid_parties <-
+  c("Labor", "Liberal", "Greens", "National", "Other")
 
 if (all(analysis_data$party %in% valid_parties)) {
   message("Test Passed: The 'party' column contains only valid party names.")
@@ -72,7 +82,8 @@ if (all(!is.na(analysis_data))) {
 }
 
 # Check if there are no empty strings in 'division', 'state', and 'party' columns
-if (all(analysis_data$division != "" & analysis_data$state != "" & analysis_data$party != "")) {
+if (all(analysis_data$division != "" &
+        analysis_data$state != "" & analysis_data$party != "")) {
   message("Test Passed: There are no empty strings in 'division', 'state', or 'party'.")
 } else {
   stop("Test Failed: There are empty strings in one or more columns.")
