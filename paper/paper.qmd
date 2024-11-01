@@ -1,5 +1,5 @@
 ---
-title: "Forecasting the 2024 U.S. Presidential Election: An Analysis for Battleground States"
+title: "Forecasting the 2024 U.S. Presidential Election: An Analysis of Battleground States"
 subtitle: "Trump Favored Nationally, While Harris Leads in 4 of 7 Battleground States"
 author: 
   - Shamayla Durrin
@@ -55,7 +55,7 @@ The estimand of this study is the level of voter support for each candidate, Kam
 
 This paper contributes to the field of election forecasting by emphasizing the importance of poll quality and recency in prediction models. By focusing on battleground states where the support margins are particularly close, our approach highlights the areas where campaign strategies and voter turnout efforts may have the greatest impact. This could provides insights for political strategists, media analysts, and the general public by offering a nuanced view of the electoral landscape.
 
-This paper is organized as follows: In \ref{sec-data}, we clean the data, explore summary statistics, plot distributions of key variables, and examine relationships between variables. In \ref{sec-model}, we discuss our forecasting approach, model selection, justification for the chosen model, and the mechanism of deriving poll weights based on pollster reliability, ultimately presenting our predictions. Finally, in \ref{sec-discussion}, we address the broader implications of our findings, acknowledge limitations, and suggest directions for future work. 
+This paper is organized as follows: In Section @sec-data, we clean the data, explore summary statistics, plot distributions of key variables, and examine relationships between variables. In Section @sec-model, we discuss our forecasting approach, model selection, justification for the chosen model, and the mechanism of deriving poll weights based on pollster reliability, ultimately presenting our predictions. In Section @sec-discussion, we address the broader implications of our findings, acknowledge limitations, and suggest directions for future work. [Appendix -@sec-pollster-meth] contains a closer look at the methodology used by Emerson College Polling for its poll conducted from October 14 t0 16, 2024. [Appendix -@sec-idealized-meth] contains a discussion about an idealized methodology that we would use to forecast the 2024 U.S. Presidential Election if we had a budget of  \$100,000.
 
 \vspace{0.7cm} 
 
@@ -744,7 +744,7 @@ In conclusion, this paper contributes to election forecasting by providing a com
 
 # Appendix {.unnumbered}
 
-# Emerson College Polling Methodology (October 14-16, 2024)
+# Emerson College Polling Methodology (October 14-16, 2024) {#sec-pollster-meth}
 
 ## Overview
 
@@ -786,7 +786,7 @@ The Emerson survey is designed with simplicity and efficiency. One of its streng
 
 Emerson College Polling's mixed-mode methodology is effective in balancing cost with broad demographic reach. Its weighting techniques contribute to reliable and accurate results despite non-responses. While the use of multiple survey modes reduces coverage bias, other possible biases—such as lack of nuance and combined measurement errors must be considered during the analysis.
 
-# Idealized Methodology
+# Idealized Methodology {#sec-idealized-meth}
 
 ## Overview
 
