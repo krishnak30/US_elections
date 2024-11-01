@@ -61,7 +61,8 @@ This paper is organized as follows: In \ref{sec-data}, we clean the data, explor
 
 \vspace{0.7cm} 
 
-# Data {#sec-data} 
+
+# Data {#sec-data}
 
 \vspace{0.7cm} 
 
