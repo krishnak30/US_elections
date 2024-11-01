@@ -65,13 +65,11 @@ This paper is organized as follows: In Section @sec-data, we clean the data, exp
 
 ## Data Cleaning
 
-The raw data for this project, sourced from FiveThirtyEight, [@FiveThirtyEight] underwent a series of cleaning steps to prepare it for analysis. Initially, duplicate rows were removed to ensure that only unique observations remained, facilitated by the `janitor` package [@janitor]. A new binary variable, 'national', was created to indicate whether a poll was conducted at the national or state level. Missing values in the 'state' column were replaced with "Not Applicable," and numeric grades were evaluated to filter out low-quality pollsters, keeping only those with a numeric grade above 1. This cutoff was selected to retain mid to high-level pollsters for more reliable results. These steps were performed using functions from the `tidyverse` package [@tidy]. Dates were also standardized and converted into a proper format for analysis using the same package. Polls related to Kamala Harris were retained for further analysis, and percentage support values were transformed into actual numbers of supporters based on sample size. Additionally, pollster counts below five were excluded to focus on more reliable data sources. Polls regarding Kamala Harris were filtered to include only those conducted after her official candidacy announcement on July 21, 2024, ensuring the data reflects post-announcement public sentiment.The cleaned dataset was saved in Parquet format for efficient storage and retrieval, using the `arrow` package [@arrow].
+The raw data for this project, sourced from FiveThirtyEight, [@FiveThirtyEight] underwent a series of cleaning steps to prepare it for analysis. Initially, duplicate rows were removed to ensure that only unique observations remained, facilitated by the `janitor` package [@janitor]. A new binary variable, 'national', was created to indicate whether a poll was conducted at the national or state level. Missing values in the 'state' column were replaced with "Not Applicable," and numeric grades were evaluated to filter out low-quality pollsters, keeping only those with a numeric grade above 1. This cutoff was selected to retain mid to high-level pollsters for more reliable results. These steps were performed using functions from the `tidyverse` package [@tidy]. Dates were also standardized and converted into a proper format for analysis using the same package. Polls related to Kamala Harris were retained for further analysis, and percentage support values were transformed into actual numbers of supporters based on sample size. Pollster counts below five were excluded to focus on more reliable data sources. Polls regarding Kamala Harris were filtered to include only those conducted after her official candidacy announcement on July 21, 2024, ensuring the data reflects post-announcement public sentiment.The cleaned dataset was saved in Parquet format for efficient storage and retrieval, using the `arrow` package [@arrow].
 
 ## Explorations of Variables of Interest
 
 ### Summary Statistics of Key Variables and Measurement Method
-
-\vspace{0.7cm}
 
 For the purposes this analysis, a subset of variables was selected from the raw data set. Two additional variables, 'national' and 'state', were created using the existing 'state' and 'end date' variable. A short description of each variable of interest and their respective measurement methods is given below.
 
@@ -297,7 +295,7 @@ combined_plot
 #| message: false
 #| echo: false
 #| label: fig-trend
-#| fig-cap: "Figure showing support trends for Kamala Harris and Donald Trump over time. Trend lines indicate slight shifts in support as the election nears, with consistent polling frequency throughout the period."
+#| fig-cap: "Support trends for Kamala Harris and Donald Trump over time. Trend lines indicate slight shifts in support as the election nears, with consistent polling frequency throughout the period."
 
 # Sample data creation (Replace this with your actual data)
 # Assuming your dataset `analysis_data` has columns: date, pct, and candidate_name
@@ -414,7 +412,7 @@ map_data <- us_states %>%
 #| warning: false
 #| message: false
 #| label: fig-map1
-#| fig-cap: "Map showing the proportion of support for Kamala Harris relative to Donald Trump across U.S. states. Blue indicates states where Harris has higher support, while red indicates states where Trump leads. Color intensity reflects the magnitude of support difference, with gray indicating insufficient polling data."
+#| fig-cap: "Proportion of support for Kamala Harris relative to Donald Trump across U.S. states. Blue indicates states where Harris has higher support, while red indicates states where Trump leads. Color intensity reflects the magnitude of support difference, with gray indicating insufficient polling data."
 
 
 # Filter out Alaska, Hawaii, and Puerto Rico using subset
@@ -490,7 +488,7 @@ Where
 #| warning: false
 #| message: false
 #| label: fig-causal-model
-#| fig-cap: "Directed Acyclic Graph illustrating factors influencing candidate support, with poll attributes (Pollster, Sample Size, State, Recency) as direct contributors and unobserved confounders representing potential biases in polling results."
+#| fig-cap: "Factors influencing candidate support, with poll attributes (Pollster, Sample Size, State, Recency) as direct contributors and unobserved confounders representing potential biases in polling results."
 # Load and display the saved PNG
 knitr::include_graphics(here("other", "graphs", "polls_of_polls_dag.png"))
 
@@ -717,6 +715,11 @@ battleground_table <- state_support_data %>%
     `Trump Support (%)` = support_trump,
     `Predicted Winner` = winner,
     `Support Margin (%)` = margin
+  ) %>%
+  mutate(
+    `Kamala Support (%)` = round(`Kamala Support (%)`, 2),
+    `Trump Support (%)` = round(`Trump Support (%)`, 2),
+    `Support Margin (%)` = round(`Support Margin (%)`, 2)
   )
 
 # Display the table using kable
