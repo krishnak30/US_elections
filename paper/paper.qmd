@@ -19,7 +19,6 @@ format:
       - \usepackage[margin=1in]{geometry} 
 
 bibliography: references.bib
-
 ---
 
 ```{r}
@@ -52,17 +51,13 @@ us_states <- st_read(here("data/03-mapping_data/US"))
 
 # Introduction
 
-While individual polls provide snapshots of public opinion, they are often subject to biases and methodological differences. In this paper, we aim to forecast voter support for Kamala Harris and Donald Trump by aggregating data from multiple polling sources, reducing individual poll biases, and improving overall prediction accuracy. Our analysis focuses on estimating the levels of support for each candidate not only nationally but also in key swing states that are likely to be decisive in determining the electoral college outcome. 
+While individual polls provide snapshots of public opinion, they are often subject to biases and methodological differences. In this paper, we aim to forecast voter support for Kamala Harris and Donald Trump by aggregating data from multiple polling sources, reducing individual poll biases, and improving overall prediction accuracy. Our analysis focuses on estimating the levels of support for each candidate not only nationally but also in key swing states that are likely to be decisive in determining the electoral college outcome.
 
 The estimand of this study is the level of voter support for each candidate, Kamala Harris and Donald Trump, as reported across multiple polls.To estimate this, we developed a regression model incorporating variables such as pollster, sample size, state, and recency of the poll, with an emphasis on accurately capturing state-level dynamics. Our findings indicate that, on a national level, support between Kamala Harris and Donald Trump is closely balanced. Harris’s estimated national support stands close to 48%, while Trump’s support is slightly higher, around 49%. We found that Trump holds a marginal lead in battleground states like Arizona and Georgia, with a support margin slightly above 1%. In contrast, Harris shows narrow leads in Michigan, Nevada, Pennsylvania, and Wisconsin, with her support margin in Wisconsin reaching over 2%, making it her strongest battleground. North Carolina emerges as one of the tightest races, with Trump leading by only 0.26%, underscoring the competitive nature of these regions.
 
 This paper contributes to the field of election forecasting by emphasizing the importance of poll quality and recency in prediction models. By focusing on battleground states where the support margins are particularly close, our approach highlights the areas where campaign strategies and voter turnout efforts may have the greatest impact. This could provides insights for political strategists, media analysts, and the general public by offering a nuanced view of the electoral landscape.
 
-This paper is organized as follows: In {#sec-data}, we clean the data, explore summary statistics, plot distributions of key variables, and examine relationships between variables. In {#sec-model}, we discuss our forecasting approach, model selection, justification for the chosen model, and the mechanism of deriving poll weights based on pollster reliability, ultimately presenting our predictions. Finally, in {#sec-discussion}, we address the broader implications of our findings, acknowledge limitations, and suggest directions for future work.
-\vspace{0.7cm}
-# Data {#sec-data}
-\vspace{0.7cm}
-## Measurement
+This paper is organized as follows: In \ref{sec-data}, we clean the data, explore summary statistics, plot distributions of key variables, and examine relationships between variables. In \ref{sec-model}, we discuss our forecasting approach, model selection, justification for the chosen model, and the mechanism of deriving poll weights based on pollster reliability, ultimately presenting our predictions. Finally, in \ref{sec-discussion}, we address the broader implications of our findings, acknowledge limitations, and suggest directions for future work. \vspace{0.7cm} \# Data {#sec-data} \vspace{0.7cm} \## Measurement
 
 In the dataset of our analysis, the process of measurement begins by capturing real-world public opinion through surveys. Polling organizations transform this observed phenomenon into structured data by recording support percentages, pollster details, and methodological choices, thus turning public sentiment into quantifiable entries in the dataset.
 
@@ -761,11 +756,11 @@ In conclusion, this paper contributes to election forecasting by providing a com
 
 ## Overview
 
-Emerson College Polling, also known as ECP, is a nationally-ranked polling center that aims to accurately reflect public opinion through a mixed-mode methodology [@about_ecp]. ECP conducted a survey from October 14 to 16, 2024, targeting 1,000 likely voters in the 2024 U.S. Presidential Election. The poll measured voter preferences between Kamala Harris and Donald Trump, revealing a near tie with Harris at 50% and Trump at 49% [@ecp_poll]. Appendix A takes a closer look at the methodology used by ECP for this poll. 
+Emerson College Polling, also known as ECP, is a nationally-ranked polling center that aims to accurately reflect public opinion through a mixed-mode methodology [@about_ecp]. ECP conducted a survey from October 14 to 16, 2024, targeting 1,000 likely voters in the 2024 U.S. Presidential Election. The poll measured voter preferences between Kamala Harris and Donald Trump, revealing a near tie with Harris at 50% and Trump at 49% [@ecp_poll]. Appendix A takes a closer look at the methodology used by ECP for this poll.
 
 ## Population, Frame, and Sample of the Poll
 
-To conduct a poll, it is important to first define the target population, the sampling frame and the sample. Defining these elements sets a clear direction for the research and assures a clear object of research [@akman]. 
+To conduct a poll, it is important to first define the target population, the sampling frame and the sample. Defining these elements sets a clear direction for the research and assures a clear object of research [@akman].
 
 The target population is the whole group of interest the researchers would like to make conclusions on [@def_terms]. For the poll conducted by ECP in October, the target population is likely voters in the U.S. elections [@ecp_poll]. Choosing likely voters as the target population makes the poll results more accurate as not all registered voters end up voting in the Presidential Election. In fact, the last U.S. Presidential Election in 2020 only had 66.8% of registered voters participate in the elections, which is the highest voter turnout in the 21st century [@us_census]. In ECP’s methodology, likely voters are determined by a combination of voter history, registration status, and demographic data. These factors are self-reported [@ecp_poll].
 
@@ -785,9 +780,7 @@ Emerson College used a mixed-mode sampling approach for its polling [@about_ecp]
 
 ## Advantages and Trade-offs in Mixed-Mode Sampling
 
-The multi-mode sampling approach used by ECP in this poll has many advantages. By using multiple data collection methods, ECP reduces coverage bias [@mora]. In a survey, coverage bias means there is some part of the target population that has zero chance of being part of the sample and will not be represented in the data [@def_cb].  For example, MMS-to-web surveys tend to attract responses from younger voters and individuals who rely primarily on mobile devices, capturing a segment that may otherwise be underrepresented. Interactive voice response (IVR) calls target older and rural voters, who are more inclined to use landlines. Online panels gather responses from tech-savvy individuals who prefer online engagement over other methods.
-Multi-mode sampling is also more cost-effective [@mora].  Automated technologies such as MMS-to-text web surveys and IVR reduce expenses compared to traditional live interviews. Lower costs allow the poll to reach a larger sample size, which also results in more accurate and representative conclusions [@large_ss]. 
-However, using a multi-mode sampling approach also introduces a trade-off. This sampling approach introduces a measurement error [@mora]. Each method—whether IVR, web surveys, or online panels—brings its own unique biases. Combining these creates inconsistencies between respondent groups. This increases the overall margin of error by adding variability.
+The multi-mode sampling approach used by ECP in this poll has many advantages. By using multiple data collection methods, ECP reduces coverage bias [@mora]. In a survey, coverage bias means there is some part of the target population that has zero chance of being part of the sample and will not be represented in the data [@def_cb]. For example, MMS-to-web surveys tend to attract responses from younger voters and individuals who rely primarily on mobile devices, capturing a segment that may otherwise be underrepresented. Interactive voice response (IVR) calls target older and rural voters, who are more inclined to use landlines. Online panels gather responses from tech-savvy individuals who prefer online engagement over other methods. Multi-mode sampling is also more cost-effective [@mora]. Automated technologies such as MMS-to-text web surveys and IVR reduce expenses compared to traditional live interviews. Lower costs allow the poll to reach a larger sample size, which also results in more accurate and representative conclusions [@large_ss]. However, using a multi-mode sampling approach also introduces a trade-off. This sampling approach introduces a measurement error [@mora]. Each method—whether IVR, web surveys, or online panels—brings its own unique biases. Combining these creates inconsistencies between respondent groups. This increases the overall margin of error by adding variability.
 
 ## Non-response Handling
 
@@ -795,8 +788,7 @@ ECP addresses non-response using a weighting system. The data is adjusted based 
 
 ## Questionnaire Design
 
-The Emerson survey is designed with simplicity and efficiency. One of its strengths is its straightforward format, using clear and unambiguous questions. This simplicity makes the survey easy for respondents to understand. Another strength is its topical relevance. By focusing on vote preferences and demographic splits, the survey provides timely insights, especially valuable during election cycles.
-However, the survey has some limitations. One is its lack of nuance; while it captures basic voter preferences, it doesn’t explore the motivations or factors driving those choices in depth. Additionally, the various survey modes can affect respondent engagement with the questions, which may also influence the accuracy and depth of their answers.
+The Emerson survey is designed with simplicity and efficiency. One of its strengths is its straightforward format, using clear and unambiguous questions. This simplicity makes the survey easy for respondents to understand. Another strength is its topical relevance. By focusing on vote preferences and demographic splits, the survey provides timely insights, especially valuable during election cycles. However, the survey has some limitations. One is its lack of nuance; while it captures basic voter preferences, it doesn’t explore the motivations or factors driving those choices in depth. Additionally, the various survey modes can affect respondent engagement with the questions, which may also influence the accuracy and depth of their answers.
 
 ## Conclusion
 
@@ -806,37 +798,31 @@ Emerson College Polling's mixed-mode methodology is effective in balancing cost 
 
 ## Overview
 
-This methodology outlines an election forecasting plan with a budget of \$100,000. Heavily inspired by TIPP Insights and Emerson College's hybrid approaches, the survey methodology balances cost-efficiency and data accuracy by using different modes of data collection and wide demographic reach.
+This methodology outlines an election forecasting plan with a budget of \$100,000. This survey is heavily inspired by TIPP Insights and Emerson College Polling (ECP), which are two respected polling institutions. TIPP Insights is known for accurately predicting major U.S. elections, including presidential races, by combining traditional live phone interviews with probability-based sampling [@tipp_accuracy]. Their history of reliable forecasts has made TIPP a trusted name in polling, that specializes in capturing voter sentiment and representing diverse demographics. Similarly, Emerson College is known for its mixed-mode polling strategy, which combines Interactive Voice Response (IVR) with online polling to reach both older, landline users and younger, mobile-first voters [@about_ecp].
 
-This forecasting plan will predict the popular vote and Electoral College outcomes, emphasizing key swing states and underrepresented voter groups.
+By incorporating techniques from both of these institutions, our methodology aims to achieve high accuracy and broad demographic reach, ensuring a balanced, cost-effective approach to election forecasting.
 
 ## Sampling Approach
 
-This idealized methodology uses a multi-mode hybrid sampling approach. This allows the use of both probability-based and non-probability-based methods:
+This idealized methodology employs a multi-mode hybrid sampling approach, utilizing both probability-based and non-probability-based methods. Combining both methods provides both accuracy and inclusivity in polling. Overall, this method creates a more complete view of voter preferences [@baker].
 
--   Probability-based methods:
+Probability-based methods include live phone interviews (landline and cell), as used by TIPP. Live interviews are a direct, personal method of collecting responses, with voter lists sourced from Aristotle [@tipp_methodology]. This method is effective in reaching older voters and voters with less internet connectivity. Interactive Voice Response (IVR) is also used, following Emerson’s strategy for landline users [@about_ecp], to balance costs and ensure representation of less tech-savvy populations.
 
-    -   Live phone interviews (landline and cell): As used by TIPP, live phone interviews is a direct and personal method of collecting responses. Voter lists would be sourced from Aristotle to ensure we contact likely voters. This mode reaches older voters and voters with less internet connection.
+For non-probability methods, this approach includes MMS-to-web surveys for mobile users, inspired by Emerson’s MMS-to-web strategy [@about_ecp]. Likely voters receive multimedia messages on their cell phones encouraging them to complete an online survey, which helps reach younger, mobile-first voters. Additionally, online panel recruitment is done through CINT. This follows TIPP's online panel strategy, where a part of the survey is delivered to a pre-screened panel [@tipp_methodology].
 
-    -   Interactive Voice Response (IVR): Similar to Emerson’s approach, IVR for landline users balances costs and ensures demographic representation, particularly among older or less tech-savvy populations. This method captures quick responses and is less expensive than live interviews.
-
--   Non-probability methods:
-
-    -   MMS-to-web (mobile): Following Emerson’s MMS-to-web strategy, we would send multimedia messages to likely voters’ cell phones, encouraging them to complete an online survey. This method works well for younger, mobile-first voters, helping fill in gaps where traditional methods might miss.
-
-    -   Online panel recruitment via CINT: To mirror TIPP’s online panel approach, a portion of the survey would be conducted via an opt-in panel of pre-screened voters from CINT, capturing tech-savvy respondents. CINT’s platform ensures that different voter groups, including hard-to-reach groups, are represented in the polling.
+The combination of these sampling methods and collection methods ensures a more accurate representation of voter groups, including harder-to-reach populations.
 
 ## Recruitment Strategy
 
-By using Aristotle’s voter lists and CINT's platform as a sampling frame, the sample consists of likely voters based on registration status and past voting behavior. Quota sampling would be used to match the demographic profile of the U.S. electorate. This ensures that respondents in the sample reflect key demographic variables such as age, gender, race, and education level.
+By using Aristotle’s voter lists and CINT's platform as a sampling frame, the sample consists of likely voters. Likely voters are determined based on registration status and past voting behavior [@ecp_poll]. Quota sampling would be used to match the demographic profile of the U.S. electorate. Quota sampling is a sampling method that relies on a non-random selection of units based on predetermined proportions [@def_quota]. This ensures that respondents in the sample reflect demographic variables such as age, gender, race, and education level.
 
-We would oversample key swing states like Pennsylvania, Wisconsin, and Florida. Key swing states are states where there is no overwhelming support for a particular candidate or political party. The outcome in these states often determine the overall result of the election, making them critical in securing a win in the Electoral College. Oversampling these states allows a more accurate forecasting in these battlegrounds, which are critical for predicting the Electoral College outcome.
+We would oversample key swing states like Pennsylvania, Arizona, and Georgia [@swing_state]. Key swing states are states where there is no overwhelming support for a particular candidate or political party [@barker]. The outcome in these states often determine the overall result of the election, making them critical in securing a win in the Electoral College. Oversampling these states allows a more accurate forecasting in these battlegrounds, which are critical for predicting the Electoral College outcome.
 
 ## Data Validation
 
 Given that the data is collected in a hybrid format, we would use duplicate detection methods via IP addresses or phone numbers to eliminate multiple responses from the same individual. Also, we would implement attention checks to identify respondents who are not fully engaged. Both duplicate respondents and unengaged respondents bias results, and should be removed from the data set.
 
-Following TIPP’s iterative weighting process, the data will be weighted to ensure that the sample aligns with key demographics (race, gender, education) based on census data.
+The data will be weighted to ensure that the sample aligns with key demographics (race, gender, education) based on census data. Weights are applied to even out under- and over-represented groups, making the data more similar to the electorate [@weight].
 
 ## Conclusion
 
@@ -869,7 +855,6 @@ The diagnostic plots for Model 3ni sgiven in [@fig-dgplotone]. We notice the fol
 
 4.  **Residuals vs. Leverage Plot**: This plot identifies potential influential points. While most points have low leverage, a few points exhibit higher leverage, as indicated by their distance from the center. However, no points exceed Cook’s distance threshold, indicating no extreme outliers that would unduly influence the model.
 
-
 ```{r}
 #| echo: false
 #| warning: false
@@ -881,13 +866,13 @@ knitr::include_graphics(here("other", "graphs", "diagnostic_plot_model6.png"))
 
 The diagnostic plots for Model 6 is given in [@fig-dgplottwo]. We notice the following:
 
-1. **Residuals vs Fitted**: This plot suggests a fairly random spread of residuals around zero, indicating that the linearity assumption holds reasonably well. However, there is slight clustering of points in the center, which could indicate minor heteroscedasticity but is not severe.
+1.  **Residuals vs Fitted**: This plot suggests a fairly random spread of residuals around zero, indicating that the linearity assumption holds reasonably well. However, there is slight clustering of points in the center, which could indicate minor heteroscedasticity but is not severe.
 
-2. **Normal Q-Q Plot**: The Q-Q plot shows that the residuals generally follow a normal distribution, with only a few deviations at the tails. This suggests that the normality assumption is mostly met, though some minor deviations in the upper tail indicate possible outliers.
+2.  **Normal Q-Q Plot**: The Q-Q plot shows that the residuals generally follow a normal distribution, with only a few deviations at the tails. This suggests that the normality assumption is mostly met, though some minor deviations in the upper tail indicate possible outliers.
 
-3. **Scale-Location (Spread-Location) Plot**: The residuals appear randomly dispersed with no clear pattern, supporting the homoscedasticity (constant variance) assumption. However, some observations near the upper range might indicate slight variance inconsistency, though it is minimal.
+3.  **Scale-Location (Spread-Location) Plot**: The residuals appear randomly dispersed with no clear pattern, supporting the homoscedasticity (constant variance) assumption. However, some observations near the upper range might indicate slight variance inconsistency, though it is minimal.
 
-4. **Residuals vs Leverage**: This plot does not show any influential outliers with high leverage that might impact the model unduly. The Cook's distance lines show that no data points exceed these thresholds, indicating that no individual observation is disproportionately influencing the model.
+4.  **Residuals vs Leverage**: This plot does not show any influential outliers with high leverage that might impact the model unduly. The Cook's distance lines show that no data points exceed these thresholds, indicating that no individual observation is disproportionately influencing the model.
 
 Overall, the diagnostic plots for both model suggests that they meet the assumptions for linear regression fairly well, with minor deviations that are not expected to severely impact the model’s validity.
 

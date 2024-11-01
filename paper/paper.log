@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex 2024.11.1)  1 NOV 2024 03:02
+This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2024) (preloaded format=xelatex 2024.11.1)  1 NOV 2024 03:14
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1271,6 +1271,16 @@ LaTeX Font Info:    Font shape `TU/latinmodern-math.otf(3)/m/n' will be
 
 ]
 
+LaTeX Warning: Reference `sec-data' on page 2 undefined on input line 271.
+
+
+LaTeX Warning: Reference `sec-model' on page 2 undefined on input line 273.
+
+
+LaTeX Warning: Reference `sec-discussion' on page 2 undefined on input line 277.
+
+
+
 [2]
 
 [3]
@@ -1362,10 +1372,10 @@ File: ../other/graphs/polls_of_polls_dag.png Graphic file (type bmp)
 l.822 .... }Model Summary with Included Variables}
                                                   \\ 
 Here is how much of TeX's memory you used:
- 40423 strings out of 476232
- 866278 string characters out of 5786430
+ 40426 strings out of 476232
+ 866315 string characters out of 5786430
  1523665 words of memory out of 5000000
- 62396 multiletter control sequences out of 15000+600000
+ 62399 multiletter control sequences out of 15000+600000
  569457 words of font info for 121 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
  108i,10n,123p,10900b,793s stack positions out of 10000i,1000n,20000p,200000b,200000s
