@@ -4,9 +4,9 @@
 # Date: October 19 2024
 # Contact: krishna.kumar@mail.utoronto.ca
 # License: MIT
-# Pre-requisites: 
-  # - 00-install_packages.R
-  # - 00-simulate_data.R 
+# Pre-requisites:
+# - 00-install_packages.R
+# - 00-simulate_data.R
 
 #### Workspace setup ####
 
@@ -18,8 +18,13 @@ library(testthat)
 library(arrow)
 library(readr)
 
+<<<<<<< HEAD
 # loading the data #
 simulated_data <- read_csv("data/00-simulated_data/simulated_data.csv")
+=======
+analysis_data <-
+  read_csv("data/00-simulated_data/simulated_data.csv")
+>>>>>>> 2e22a206dc9788f5708daba86f1e4ee71eec1e75
 
 # Checking data load success
 if (exists("simulated_data") && is.data.frame(simulated_data)) {
@@ -76,13 +81,62 @@ test_that("Sample sizes and pct are within expected ranges", {
   expect_true(all(simulated_data$pct >= 30 & simulated_data$pct <= 70))
 })
 
+<<<<<<< HEAD
 # Test population column values
 test_that("Population column contains valid types", {
   expect_true(all(simulated_data$population %in% c("likely voters", "registered voters")))
 })
+=======
+# Check if the 'state' column contains only valid Australian state names
+valid_states <-
+  c(
+    "New South Wales",
+    "Victoria",
+    "Queensland",
+    "South Australia",
+    "Western Australia",
+    "Tasmania",
+    "Northern Territory",
+    "Australian Capital Territory"
+  )
+>>>>>>> 2e22a206dc9788f5708daba86f1e4ee71eec1e75
 
 # Test candidate_name values
 test_that("Candidate names are valid", {
   expect_true(all(simulated_data$candidate_name %in% c("Donald Trump", "Kamala Harris", "other")))
 })
 
+<<<<<<< HEAD
+=======
+# Check if the 'party' column contains only valid party names
+valid_parties <-
+  c("Labor", "Liberal", "Greens", "National", "Other")
+
+if (all(analysis_data$party %in% valid_parties)) {
+  message("Test Passed: The 'party' column contains only valid party names.")
+} else {
+  stop("Test Failed: The 'party' column contains invalid party names.")
+}
+
+# Check if there are any missing values in the dataset
+if (all(!is.na(analysis_data))) {
+  message("Test Passed: The dataset contains no missing values.")
+} else {
+  stop("Test Failed: The dataset contains missing values.")
+}
+
+# Check if there are no empty strings in 'division', 'state', and 'party' columns
+if (all(analysis_data$division != "" &
+        analysis_data$state != "" & analysis_data$party != "")) {
+  message("Test Passed: There are no empty strings in 'division', 'state', or 'party'.")
+} else {
+  stop("Test Failed: There are empty strings in one or more columns.")
+}
+
+# Check if the 'party' column has at least two unique values
+if (n_distinct(analysis_data$party) >= 2) {
+  message("Test Passed: The 'party' column contains at least two unique values.")
+} else {
+  stop("Test Failed: The 'party' column contains less than two unique values.")
+}
+>>>>>>> 2e22a206dc9788f5708daba86f1e4ee71eec1e75

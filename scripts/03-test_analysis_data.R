@@ -1,4 +1,5 @@
 #### Preamble ####
+<<<<<<< HEAD
 # Purpose: Tests the structure and validity of the analysis polling results data set
 # Author: Krishna Kumar
 # Date: October 19 2024
@@ -54,4 +55,14 @@ test_that("Population column contains valid types", {
 test_that("National column contains valid values (0 or 1)", {
   expect_true(all(analysis_data$national %in% c(0, 1)))
 })
+=======
+# Purpose: Tests the structure and validity of the analysis data set
+# Author: Krishna Kumar
+# Date: November 1 2024
+# Contact: krishna.kumar@mail.utoronto.ca
+# License: MIT
+# Pre-requisites: 
+# - 00-install_packages.R
+# - 02-clean_data.R
+>>>>>>> 2e22a206dc9788f5708daba86f1e4ee71eec1e75
 
