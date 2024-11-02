@@ -1,23 +1,18 @@
 #### Preamble ####
-# Purpose: Simulates a data set of polling results for 
-# forecasting the upcoming US elections. 
+# Purpose: Simulates a data set of polling results for forecasting the upcoming US elections. 
 # Author: Krishna Kumar
-# Date: today
+# Date: October 19 2024
 # Contact: krishna.kumar@mail.utoronto.ca
 # License: MIT
-# Pre-requisites: The `tidyverse` package must be installed
-
+# Pre-requisites: 00-install_packages.R
 
 #### Workspace setup ####
 
 library(tidyverse)
-library(dplyr)
-library(lubridate)
-
-set.seed(420)
-
 
 #### Simulate data ####
+
+set.seed(420)
 
 # Number of observations #
 n <- 100
@@ -75,7 +70,6 @@ candidate_name <- sample(c("Donald Trump", "Kamala Harris", "other"), n, replace
 
 pct <- round(runif(n, min = 30, max = 70), 1)
 
-
 # Combining all variables into a tibble #
 
 simulated_data <- tibble(
@@ -92,7 +86,5 @@ simulated_data <- tibble(
   candidate_name = candidate_name,
   pct = pct
 )
-
-head(simulated_data, 20)
 
 write.csv(simulated_data, file = "data/00-simulated_data/simulated_data.csv")

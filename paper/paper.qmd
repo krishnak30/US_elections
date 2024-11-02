@@ -1,17 +1,23 @@
 ---
-title: Forcasting US Elections using Polls-of-Polls
-subtitle: "My subtitle if needed"
+title: "Forecasting the 2024 U.S. Presidential Election: An Analysis for Battleground States"
+subtitle: "Trump Favored Nationally, While Harris Leads in 4 of 7 Battleground States"
 author: 
   - Shamayla Durrin
   - Denise Chang 
   - Krishna Kumar
 thanks: "Code and data are available at: [https://github.com/krishnak30/US_elections](https://github.com/krishnak30/US_elections)."
-
 date: today
 date-format: long
-abstract: "First sentence. Second sentence. Third sentence. Fourth sentence."
-format: pdf
-number-sections: true
+abstract: >
+  This study employs a polls-of-polls approach to predict support for Kamala Harris and Donald Trump in the 2024 U.S. Presidential Election, with a focus on key battleground states to forecast the likely winner of the electoral college. By aggregating multiple polls and applying a weighted linear regression model with predictors like pollster reliability, sample size, state, and recency, we estimate a higher national support for Trump relative to Harris. Our analysis also reveals a close competition in battleground states, with Trump holding a narrow lead in Arizona, Georgia, and North Carolina, while Harris leads in Michigan, Nevada, Pennsylvania, and Wisconsin. These findings underscore the value of aggregating polls over relying on individual surveys, offering a more comprehensive and robust forecast of electoral outcomes.
+format: 
+  pdf:
+    number-sections: true
+    header-includes:
+      - \usepackage{pdfpages}
+      - '\KOMAoption{captions}{tableheading}'
+      - \usepackage[margin=1in]{geometry} 
+
 bibliography: references.bib
 ---
 
@@ -20,230 +26,104 @@ bibliography: references.bib
 #| warning: false
 #| message: false
 
-#install.packages("psych")
-#install.packages("plotly")
-install.packages("stringr")
+#### Workspace set up ####
 library(psych)
 library(tidyverse)
 library(arrow)
 library(here)
-library(ggplot2)
 library(kableExtra)
-library(sf)
-library(tidyverse)
 library(plotly)
 library(RColorBrewer)
-library(stringr)
 library(modelsummary)
+library(broom)
+library(sf)
+library(patchwork)
+library(ggfortify)
+
+# Load data
 analysis_data <- read_parquet(here("data/02-analysis_data/analysis_data.parquet"))
-mapping_data <- st_read(here("data/03-shapefiles_data/US"))
+us_states <- st_read(here("data/03-mapping_data/US"))
 ```
+
+\vspace{0.7cm}
 
 # Introduction
 
-# Data
+While individual polls provide snapshots of public opinion, they are often subject to biases and methodological differences. In this paper, we aim to forecast voter support for Kamala Harris and Donald Trump by aggregating data from multiple polling sources, reducing individual poll biases, and improving overall prediction accuracy. Our analysis focuses on estimating the levels of support for each candidate not only nationally but also in key swing states that are likely to be decisive in determining the electoral college outcome.
 
-### Measurement
+The estimand of this study is the level of voter support for each candidate, Kamala Harris and Donald Trump, as reported across multiple polls.To estimate this, we developed a regression model incorporating variables such as pollster, sample size, state, and recency of the poll, with an emphasis on accurately capturing state-level dynamics. Our findings indicate that, on a national level, support between Kamala Harris and Donald Trump is closely balanced. Harris’s estimated national support stands close to 48%, while Trump’s support is slightly higher, around 49%. We found that Trump holds a marginal lead in battleground states like Arizona and Georgia, with a support margin slightly above 1%. In contrast, Harris shows narrow leads in Michigan, Nevada, Pennsylvania, and Wisconsin, with her support margin in Wisconsin reaching over 2%, making it her strongest battleground. North Carolina emerges as one of the tightest races, with Trump leading by only 0.26%, underscoring the competitive nature of these regions.
 
-In the dataset of our analysis, the process of measurement begins by capturing real-world public opinion through surveys. Polling organizations transform this observed phenomenon into structured data by recording support percentages, pollster details, and methodological choices, thus turning public sentiment into quantifiable entries in the dataset.
+This paper contributes to the field of election forecasting by emphasizing the importance of poll quality and recency in prediction models. By focusing on battleground states where the support margins are particularly close, our approach highlights the areas where campaign strategies and voter turnout efforts may have the greatest impact. This could provides insights for political strategists, media analysts, and the general public by offering a nuanced view of the electoral landscape.
 
-Public opinion polls are essential for understanding voter preferences and electoral dynamics, providing data that informs policy decisions and campaign strategies. Our data set captures public support for candidates at specific times, along with information on methodologies, sample sizes, and pollster ratings.
+This paper is organized as follows: In \ref{sec-data}, we clean the data, explore summary statistics, plot distributions of key variables, and examine relationships between variables. In \ref{sec-model}, we discuss our forecasting approach, model selection, justification for the chosen model, and the mechanism of deriving poll weights based on pollster reliability, ultimately presenting our predictions. Finally, in \ref{sec-discussion}, we address the broader implications of our findings, acknowledge limitations, and suggest directions for future work. 
 
-Polling organizations use various methods, such as App panels, IVR (Interactive Voice Response), Live phone calls, Text-to-web systems etc. These methods can influence the validity and reliability of results, with larger sample sizes generally yielding more reliable estimates. Some methods, like live phone interviews, may be seen as more trustworthy than others.
+\vspace{0.7cm} 
 
-Our data set also includes important measures of pollster performance, such as numeric grades, poll scores, and transparency scores. These metrics are calculated by considering bias, race difficulty, predictive error, and transparency, allowing us to assess the accuracy of each poll. The "pollscore," for instance, reflects a pollster’s past performance and reliability, adjusted for potential biases.
+# Data {#sec-data}
 
-### Data Cleaning
+\vspace{0.7cm} 
 
-The raw data for this project, sourced from FiveThirtyEight, [@FiveThirtyEight] underwent a series of cleaning steps to prepare it for analysis. Initially, duplicate rows were removed to ensure that only unique observations remained, facilitated by the janitor package \[\@janitor\]. A new binary variable, 'national', was created to indicate whether a poll was conducted at the national or state level. Missing values in the 'state' column were replaced with "Not Applicable," and numeric grades were evaluated to filter out low-quality pollsters, keeping only those with a numeric grade above 1. This cutoff was selected to retain mid to high-level pollsters for more reliable results. These steps were performed using functions from the dpylr package \[\@dplyr\]. Furthermore, dates were standardized and converted into a proper format for analysis using the lubridate package \[\@lubridate\]. Polls related to Kamala Harris were retained for further analysis, and percentage support values were transformed into actual numbers of supporters based on sample size. Additionally, pollster counts below five were excluded to focus on more reliable data sources. Polls regarding Kamala Harris were filtered to include only those conducted after her official candidacy announcement on July 21, 2024, ensuring the data reflects post-announcement public sentiment.The cleaned dataset was saved in Parquet format for efficient storage and retrieval, using the arrow package \[\@arrow\].
+## Data Cleaning
 
-### Summary of Variables of Interest
+The raw data for this project, sourced from FiveThirtyEight, [@FiveThirtyEight] underwent a series of cleaning steps to prepare it for analysis. Initially, duplicate rows were removed to ensure that only unique observations remained, facilitated by the `janitor` package [@janitor]. A new binary variable, 'national', was created to indicate whether a poll was conducted at the national or state level. Missing values in the 'state' column were replaced with "Not Applicable," and numeric grades were evaluated to filter out low-quality pollsters, keeping only those with a numeric grade above 1. This cutoff was selected to retain mid to high-level pollsters for more reliable results. These steps were performed using functions from the `tidyverse` package [@tidy]. Dates were also standardized and converted into a proper format for analysis using the same package. Polls related to Kamala Harris were retained for further analysis, and percentage support values were transformed into actual numbers of supporters based on sample size. Additionally, pollster counts below five were excluded to focus on more reliable data sources. Polls regarding Kamala Harris were filtered to include only those conducted after her official candidacy announcement on July 21, 2024, ensuring the data reflects post-announcement public sentiment.The cleaned dataset was saved in Parquet format for efficient storage and retrieval, using the `arrow` package [@arrow].
 
-```{r}
+## Explorations of Variables of Interest
 
-#| include: false
-#| warning: false
-#| message: false
+### Summary Statistics of Key Variables and Measurement Method
 
-library(dplyr)
-library(modelsummary)
-library(tools)  
-library(kableExtra)
+\vspace{0.7cm}
 
-# Set options to use kableExtra for table formatting
-options(modelsummary_factory_default = 'kableExtra')
+For the purposes this analysis, a subset of variables was selected from the raw data set. Two additional variables, 'national' and 'state', were created using the existing 'state' and 'end date' variable. A short description of each variable of interest and their respective measurement methods is given below.
 
-# Create the summary statistics table for the specified numerical variables
-summary_table <- analysis_data %>%
-  select(numeric_grade, pollscore, sample_size, num_support) %>%
-  # Remove underscores and capitalize the first letter of each word
-  rename_with(~ toTitleCase(gsub("_", " ", .))) %>%
-  datasummary_skim(
-    fun_numeric = list(
-      Mean = mean,
-      SD = sd,
-      Min. = min,
-      Median = median,
-      Max. = max
-    )
-  )
+-   *Pollster*: The name of the polling organization conducting the poll (e.g., YouGov, RMG Research). This variable helps adjust for poll-specific biases. Every pollster that publicly published a scientific poll about the 2024 U.S. Presidential Election is included in the data set. The value measured for this variable is the name that appears in the scientific poll [@538_methodology].
 
-# Display the summary statistics table
-print(summary_table)
+-   *Numeric Grade*: A numeric rating given to the pollster, representing the accuracy and methodological transparency of the organization (e.g., 3.0), with higher grades indicating more reliable pollsters. The value of this variable is calculated by the 538 team. All national and state-level polls that were conducted in 1998 or later are considered to determine and to assign a numeric grade to each pollster [@538_morris].
 
-#kable(summary_table, caption = "Summary of Variables of Interest") %>%
-  kable_styling(full_width = FALSE)
+-   *Pollscore*: A score that reflects the reliability of each pollster, capturing their historical accuracy and biases. Negative values indicate better predictive accuracy, and rewards pollsters who are accurate and precise. This variable is calculated by aggregating predictive error and predictive bias together [@538_morris]. Predictive error is the difference between expectations and reality [@def_pred_error] and predictive bias is the systematic bias introduced in the methodology [@def_pred_bias].
 
-```
+-   *State*: The U.S. state where the poll was conducted, allowing for analysis of regional differences in candidate support. The value measured for this variable is the primary state that appears in the scientific poll's methodology [@538_methodology].
 
-The summary statistics **\[CROSS REFERENCE HERE\]** for the numeric variables provide significant insights into the polling data. The **numeric grade** has a mean of 2.3 and a standard deviation of 0.6, suggesting that most polls are graded around a middle value, though there is moderate variability. The range, with a minimum of 1.1 and a maximum of 3.0, indicates the presence of both low-quality and higher-quality polls within the dataset.
+-   *National*: A binary variable indicating whether the poll is national (1 for national polls, 0 for state polls).
 
-The **pollscore** averages at −0.5, with a standard deviation of 0.6. Since lower poll scores indicate more favorable outcomes for certain candidates or parties, this negative mean suggests that the polls are, on average, skewing positively towards their targets. The minimum of −1.5 and maximum of 1.7 further illustrate the wide distribution of poll results, highlighting the variability in outcomes across different polls.
+-   *End Date*: The date the poll ended, reflecting the currency of the data. This variable is taken from the publication, and is the last date for which the survey was active [@538_methodology].
 
-Looking at the **sample size**, the mean of 1962.5, accompanied by a substantial standard deviation of 2608.0, reflects significant variability in respondent numbers. With a minimum sample size of 382 and a maximum of 12,084, it is evident that while many polls are conducted with relatively small sample sizes, a few achieve much larger respondent pools. This variability can enhance the reliability of findings, particularly for those polls with larger sample sizes.
+-   *Sample Size*: The total number of respondents in the poll. This is measure by the number of completed surveys [@538_methodology].
 
-Finally, the **number of supporters** reported has a mean of 949.2 and a standard deviation of 1290.0, indicating that while the average number of supporters is relatively high, there is considerable variability. The minimum value of 172 and maximum of 6042 underscores the diverse contexts in which these polls were conducted.
+-   *Candidate Name*: The name of the candidate being polled (e.g., Kamala Harris or Donald Trump), identifying the focus of each poll result.
 
-Overall, these summary statistics emphasize the variability and range present in the polling data, which may impact the reliability and interpretation of the findings. The mixture of low and high values in numeric grade, pollscore, and sample size points to the importance of careful analysis when drawing conclusions from these polling efforts.
+-   *Pct (Percentage)*: The percentage of respondents in the poll who support the specified candidate.
 
-## Variables
+-   *Recency*: This variable measures how recent each poll is. This variable is calculated by subtracting the end date of the poll from the end date of the most recent poll.
 
-The data set contains a wide range of variables that are essential for understanding polling outcomes. The following are key variables:
-
--   **`poll_id`**: Unique identifier for each poll conducted.
-
--   **`pollster`**: The polling organization that conducted the poll (e.g., YouGov, TIPP).
-
--   **`numeric_grade`**: A numeric rating indicating the pollster’s quality or reliability (e.g., 1.8).
-
--   **`pollscore`**: A score representing the reliability of the pollster in terms of error and bias.
-
--   **`state`**: The state where the poll was conducted (or "Not Applicable" for national polls).
-
--   **`start_date` / `end_date`**: Dates during which the poll was conducted.
-
--   **`national`**: A binary variable which determines where a poll was national (1) or state (0)
-
--   **`sample_size`**: The number of respondents in the poll.
-
--   **`population`**: The group surveyed (e.g., likely voters or registered voters).
-
--   **`candidate_name`**: The name of the candidate being polled (e.g., Kamala Harris, Donald Trump).
-
--   **`pct`**: The percentage of support for the candidate in the poll.
-
--   **`methodology`**: The method used to conduct the poll (e.g. online panel)
-
--   **`num_support`**: The number of people supporting a candidate in a poll
-
-## High Level Data Cleaning
-
-blah blah blah
-
-## Summary Statistics
-
-### 1) Average Pollster Quality by Poll Type (pollscore vs state/national): mean, median, mode, min, max
+\newpage
 
 ```{r}
 #| warning: false
 #| message: false
 #| echo: false
-
-
-library(dplyr)
-
-# Generate summary statistics for national and state polls
-summary_stats <- analysis_data %>%
-  filter(!is.na(pollscore)) %>%  # Exclude rows with missing pollscore
-
-  group_by(national) %>%         # Group by the binary 'national' column (1 for national, 0 for state)
-
-  group_by(national) %>%        # Group by poll_scope
-
-  summarize(
-    Count = n(),
-    Min = round(min(pollscore), 2),
-    `1st Qu.` = round(quantile(pollscore, 0.25), 2),
-    Median = round(median(pollscore), 2),
-    Mean = round(mean(pollscore), 2),
-    `3rd Qu.` = round(quantile(pollscore, 0.75), 2),
-    Max = round(max(pollscore), 2),
-    .groups = 'drop'  # Drop grouping structure for cleaner output
-  ) %>%
-  # Rename 'national' to 'Poll Type' and replace values
-  mutate(`Poll Type` = ifelse(national == 1, "National", "State")) %>%
-  select(`Poll Type`, Count, Min, `1st Qu.`, Median, Mean, `3rd Qu.`, Max)  # Reorder columns
-
-# Print the summary statistics
-kable(summary_stats)
-
-
+#| label: tbl-sumstat
+#| tbl-cap: "Summary Statistics of Numerical Variable"
+analysis_data |> 
+  select(numeric_grade, pollscore, sample_size, pct, recency) |> 
+  datasummary_skim(histogram = FALSE)
 ```
 
-As shown above, the summary statistics table **\[CROSS-REFERENCE HERE\]** offers an overview of poll scores for national and state polls, with 427 and 696 entries, respectively. Both categories feature a minimum poll score of -1.5, which a high level of validity and reliability. The first quartile shows national polls at -0.9, while state polls are slightly lower at -1.1. Median scores are -0.3 for national polls and -0.4 for state polls, suggesting that half of the polls in both categories yield moderately negative scores, reinforcing a trend of favorable sentiment. The mean score is -0.39 for national polls, indicating a less reliable perception compared to the -0.54 mean for state polls. The third quartile for national and state polls (-0.3) indicates that the upper 25% of scores are slightly above neutral. The maximum score of 1.7 for national polls reflects a notable negative perception for at least one candidate, while the maximum for state polls is 0.6. Overall, these statistics illustrate a strong reliability of pollsters considering their errors and bias.
+\vspace{0.7cm}
 
-### 2) Distribution of Sample Sizes
+@tbl-sumstat shows that the average poll in our dataset has a numeric grade of 2.2. This suggests most polls are of moderate to high quality in terms of reliability. The mean pollscore of -0.5 suggests these polls are relatively accurate, as negative values imply reduced bias. Additionally, the large average sample size of 1908 respondents across polls provides a stable basis for our model, reducing variability and ensuring reliable predictions for candidate support.
+
+\newpage
+
+### Variation of Poll Quality and Support for Candiates by Pollster
+
+\vspace{0.7cm}
 
 ```{r}
 #| warning: false
 #| message: false
 #| echo: false
-
-library(ggplot2)
-library(dplyr)
-library(gridExtra) 
-
-# Adjust the sample size range categories
-analysis_data <- analysis_data %>%
-  mutate(sample_size_range = case_when(
-    sample_size <= 6000 ~ "0-6,000",
-    sample_size > 6000 & sample_size <= 13000 ~ "6,001-13,000",
-    TRUE ~ "Above 13,000"  # Catch any values above 13,000
-  ))
-
-# Plot for 0-6,000
-p1 <- ggplot(analysis_data %>% filter(sample_size <= 6000), aes(x = sample_size)) +
-  geom_histogram(binwidth = 500, fill = "lightgreen", color = NA, alpha = 0.7) +
-  labs(title = "Sample Sizes (0-6,000)",
-       x = "Sample Size",
-       y = "Count") +
-  scale_x_continuous(limits = c(0, 6000)) +  # Set x limits for the first plot
-  scale_y_continuous(limits = c(0, 500)) +  # Adjust y limits based on data
-  theme_minimal() +
-  theme(plot.title = element_text(size = 10, hjust = 0.5),  # **Center the title**
-        axis.title.y = element_text(margin = margin(r = 15)))  # **Increased gap for y-axis label**
-
-# Plot for 6,001 - 13,000
-p2 <- ggplot(analysis_data %>% filter(sample_size > 6000 & sample_size <= 13000), aes(x = sample_size)) +
-  geom_histogram(binwidth = 500, fill = "indianred", color = NA, alpha = 0.7) +
-  labs(title = "Sample Sizes (6,001-13,000)",
-       x = "Sample Size",
-       y = "Count") +
-  scale_x_continuous(limits = c(6001, 13000)) +  # Set x limits for the second plot
-  scale_y_continuous(limits = c(0, 20)) +  # Adjust y limits based on data
-  theme_minimal() +
-  theme(plot.title = element_text(size = 10, hjust = 0.5),  # **Center the title**
-        axis.title.y = element_text(margin = margin(r = 10)))  # **Increased gap for y-axis label**
-
-# Arrange the two plots side by side
-grid.arrange(p1, p2, ncol = 2)  # ncol=2 arranges the plots in one row
-
-
-```
-
-The histograms **\[CROSS-REFERENCE HERE\]** reveal significant trends in sample sizes across the different ranges, indicating a general tendency towards smaller samples in the polling data. **In Plot 1**, most of the values are concentrated on the left side, with very few values extending beyond the 4,500 mark. This clustering suggests that many polls are conducted with limited respondent numbers, which may compromise the reliability and representativeness of the results.
-
-In **Plot 2**, the values are somewhat evenly divided between 6,000 and the maximum sample size of 12,084. This distribution shows a broader representation of sample sizes, indicating that while there are still smaller samples, there are also a notable number of polls that feature larger sample sizes. This contrast with Plot 1 highlights a shift towards more robust polling efforts.
-
-The findings from these histograms suggest potential limitations and advantages in the accuracy and validity of the insights generated from the polling data. Smaller sample sizes are typically less desirable in polling, as they can yield less reliable estimates and increase the margin of error. Consequently, the predominance of smaller sample sizes in Plot 1 raises concerns about the robustness of the polling findings. However, the more even distribution in Plot 2 suggests that some polls conducted with larger sample sizes could enhance the reliability of the results.
-
-Ultimately, the analysis emphasizes the need to consider sample sizes critically when interpreting polling data, as larger sample sizes tend to provide a better representation of the population's views. Thus, while many polls may fall short of ideal sample sizes, the existence of larger samples in the data set can offer valuable insights into public opinion. **However, we need to determine an ideal and acceptable sample size that would be enough for the polling results to be considered reliable, before we conclude smaller samples as being unreliable.**
-
-### 3) Top 10 Pollsters and their Average Pollscores and Numeric Grades
-
-```{r}
-library(dplyr)
-
+#| label: tbl-topster
+#| tbl-cap: "Top 5 most frequent pollsters, with count of polls, average pollscore (lower scores indicate less bias), and average numeric grade (higher values indicate greater reliability)."
 # Get the top 10 pollsters by frequency along with their average pollscore and numeric grade
 top_pollsters <- analysis_data %>%
   group_by(pollster) %>%           # Group by the 'pollster' variable
@@ -254,64 +134,316 @@ top_pollsters <- analysis_data %>%
     .groups = 'drop'               # Drop grouping structure for cleaner output
   ) %>%
   arrange(desc(Count)) %>%         # Arrange in descending order of count
-  slice_head(n = 10)                # Select the top 10 pollsters
+  slice_head(n = 5)                # Select the top 10 pollsters
 
 # Rename the columns to remove underscores and capitalize 'Pollster'
 colnames(top_pollsters) <- c("Pollster", "Count", "Average Pollscore", "Average Numeric Grade")
 
-kable(top_pollsters, format = "html", caption = "Top 10 Pollsters by Frequency")
+kable(top_pollsters, format = "markdown")
 
 ```
 
-The examination of the top 10 pollsters in **\[CROSS REFERENCE HERE\]** highlights their significance in electoral forecasting. **Morning Consult**, with the highest volume of polls (235), shows a slightly optimistic average pollscore of −0.3, indicating some reliability and validity. Conversely, **Siena/NYT** stands out with the lowest average pollscore of −1.5 and the highest numeric grade of 3.0, suggesting a rigorous methodology that enhances its credibility in predicting electoral outcomes.
+@tbl-topster displays the top 5 most frequent pollsters in the dataset, with each pollster’s total poll count, average pollscore (measuring reliability and historical accuracy), and average numeric grade (indicating overall quality). We observe that the most frequent pollster, Morning Consult, has a moderate pollscore and a slightly above-average numeric grade, indicating it provides fairly reliable data. However, there is variability in pollscore and numeric grade across the top pollsters, reflecting differences in quality and potential biases among them, which the model needs to adjust for to achieve accurate predictions.
 
-In contrast, **Redfield & Wilton Strategies** displays an average pollscore of 0.4, which may create a misleadingly pessimistic view of voter sentiment. This underscores the necessity of considering multiple polling sources for a nuanced understanding of electoral dynamics.
+```{r, fig.width = 12, fig.height = 6}
+#| warning: false
+#| message: false
+#| echo: false
+#| label: fig-ster
+#| fig-cap: 'Support distribution for Kamala Harris and Donald Trump by major pollsters, highlighting variability in reported support across organizations and the value of aggregating multiple polls for balanced insights.'
 
-The presence of several pollsters with negative scores indicates a general trend towards specific candidates, which is crucial for shaping campaign strategies. Overall, these findings reinforce the critical role of trustworthy polling in influencing public perception and political strategy during elections.
+# Filter the data for top 5 pollsters, if needed
+top_pollsters <- analysis_data %>%
+  count(pollster) %>%
+  top_n(4, n) %>%
+  pull(pollster)
 
-### 5) Histogram of End Dates
+filtered_data <- analysis_data %>%
+  filter(pollster %in% top_pollsters)
 
-yet to do.
+# Plot the density plots for each pollster with overlaid densities for each candidate
+ggplot(filtered_data, aes(x = pct, fill = candidate_name)) +
+  geom_density(alpha = 0.5, color = "black") +
+  scale_fill_manual(values = c("Kamala Harris" = "steelblue", "Donald Trump" = "indianred")) +
+  facet_wrap(~ pollster, ncol = 1) +
+  labs(x = "Support (%)", y = "Density") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1),
+        axis.text.y = element_text(size = 10),
+        legend.title = element_blank(),
+        legend.position = "right",
+        panel.spacing = unit(0.5, "lines"))
 
-## Measurement
+```
 
-Some paragraphs about how we go from a phenomena in the world to an entry in the dataset.
+@fig-ster shows the distribution of support for Kamala Harris and Donald Trump by pollster, highlighting variability across different polling organizations. Morning Consult, for example, demonstrates a wide range in reported support, with more spread in Trump’s support. In contrast, Siena/NYT shows less variation, with Harris consistently leading. This variability across pollsters emphasizes the importance of aggregating multiple polls to account for organization-specific biases and ensure a more balanced view of candidate support.
 
-Public support for political candidates is an essential part of understanding electoral dynamics for a variety of reasons. Public polls provide insights into the preferences and beliefs of certain groups of people, usually voters in specific states or districts, and sometimes to also correlate preferences to demographic information (race, age, neighborhood, etc).
+### Sample Size of Polls
 
-The results help inform policy decisions, help track the likely outcomes of elections, help government officials and candidates decide where to invest time, funds, and resources to get the desired results. Polling organizations aim to capture data by surveying a representative sample of voters, free from government intervention.
+\vspace{0.7cm}
 
-Polling organizations conduct these surveys through various methods. For our particular data set, the following methods have been used to gauge public sentiment:
+```{r, fig.width = 12, fig.height = 6}
+#| warning: false
+#| message: false
+#| echo: false
+#| label: fig-ss
+#| fig-cap: "Distribution of Sample Sizes Across Polls: Majority of polls have sample sizes under 5,000, with a few outliers at larger sizes."
 
--   App panel
+# Plot histogram for all sample sizes
+ggplot(analysis_data, aes(x = sample_size)) +
+  geom_histogram(binwidth = 500, fill = "lightblue", color = "black", alpha = 0.7) +
+  labs(
+       x = "Sample Size",
+       y = "Count") +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),  # Remove grid lines
+    plot.title = element_text(size = 14, hjust = 0.5),  # Center the title
+    axis.title.y = element_text(margin = margin(r = 10))  # Increased gap for y-axis label
+  )
 
--   Online panel
+```
 
--   Email
+@fig-ss shows a clear right-skewed distribution. Most of the sample sizes are clustered between 0 and 3000 respondents, with a sharp peak around 1000-1500 respondents. This indicates that the majority of polls have smaller sample sizes. As sample size increases, the frequency significantly drops, with very few polls conducted with sample sizes larger than 5000, though there are a few outliers with sizes approaching 10,000 or more. This wide range in sample sizes can affect the precision of estimates across different polls.
 
--   Online ad
+### Distribution of Numeric Grade and Pollscore of Polls
 
--   IVR (interactive voice response)
+```{r, fig.width = 12, fig.height = 6}
+#| warning: false
+#| message: false
+#| echo: false
+#| label: fig-reli
+#| fig-cap: "Distribution of Numeric Grade and Pollscore among polling organizations, highlighting variability in pollster reliability and potential bias across polls."
+# Histogram with density line for numeric_grade
+density_plot <- ggplot(analysis_data, aes(x = numeric_grade)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 0.1, fill = "lightblue", color = "black", alpha = 0.6) +
+  geom_density(color = "black", size = 0.7) +
+  labs(x = "Numeric Grade", y = "Density") +
+  theme_minimal()
 
--   Live phone
+# Histogram with density line for pollscore with more x-axis labels
+bar_plot <- ggplot(analysis_data, aes(x = pollscore)) +
+  geom_histogram(aes(y = after_stat(density)), binwidth = 0.2, fill = "lightblue", color = "black", alpha = 0.6) +
+  geom_density(color = "black", size = 0.7) +
+  labs(x = "Pollscore", y = "Density") +
+  scale_x_continuous(breaks = seq(-1.5, 1.5, by = 0.5)) +  # Adds more frequent x-axis labels
+  theme_minimal() +
+  theme(legend.position = "none")
 
--   Text
+# Combine the plots side by side with a wider layout
+combined_plot <- density_plot + bar_plot + plot_layout(ncol = 2, widths = c(1.2, 1.2))
 
--   Text-to-web
+# Display the combined plot
+combined_plot
 
--   Probability panel
+```
 
--   Mail-to-phone
+@fig-reli shows the distribution of Numeric Grade (left) and Pollscore (right) across polling organizations. The Numeric Grade distribution shows that most pollsters are rated between 1.5 and 3, with peaks around 2.0 and 2.5, indicating a concentration of pollsters with moderate to high reliability scores. In contrast, the Pollscore distribution, where lower values indicate higher reliability, shows a range primarily between -1.5 and 0, with a notable peak around -0.5. This suggests that while many polls demonstrate relatively low bias, there is still variability in reliability across organizations. The distinction between these two metrics emphasizes the need to consider both quality (Numeric Grade) and potential systematic bias (Pollscore) when weighting polls in the model.
 
-Each pollster chooses a method(s) based on what they find to be most convenient, efficient, and providing the best results. Moreover, there are some variables which affect the validity and reliability of the polling results, such as sample size, methodology, population type, etc. Larger samples generally lead to more reliable estimates of public opinion. Some methodologies might be considered more reliable due to certain factors. The pollsters also use different sampling methods (random, stratified, etc) which can affect the validity of the polling results as well.
+\vspace{0.7cm}
 
-After collecting the required data, the polling organizations transform these results into more easily comprehensible variables such as numeric grade, poll score, transparency score, and a percentage. These scores are calculated through an extensive process of calculating excess error and bias, adjusting for race difficulty, calculating predictive error and bias, calculating pollster transparency, and combining everything into one single ‘POLLSCORE’, while accounting for luck as well.
+### Distribution of Polls by Poll Type and Candidate
 
-Variables such as pollster rating and transparency score help validate the reliability of the pollster and the polling results they publish.
+@fig-pie illustrates the distribution of polls between candidates and poll types. The left chart shows that the majority of polls are conducted at the state level, with a smaller portion being national. The right chart shows that polling is almost evenly split between Kamala Harris and Donald Trump. This distribution underscores the model’s balanced approach to capturing state-level nuances as well as broader national trends, providing a comprehensive view of candidate support across different contexts
 
-Each entry in the data set represents a glimpse of public opinion at a specific time and location, capturing measured support percentages alongside contextual variables such as pollster, methodology, and sample size. This extensive approach allows for an enhanced understanding of public support dynamics, facilitating informed analyses of electoral outcomes.
+```{r, fig.width = 12, fig.height = 4}
+#| warning: false
+#| message: false
+#| echo: false
+#| label: fig-pie
+#| fig-cap: "Poll distribution by type (state vs. national) and candidate (Trump vs. Harris), showing a majority of state polls and near-equal coverage for each candidate."
+# Prepare data for National vs. State pie chart
+national_state_data <- analysis_data %>%
+  count(national) %>%
+  mutate(label = ifelse(national == 1, "National", "State"))
 
-# Polls of Polls to Forecast Winning Candidate
+# Pie chart for National vs. State
+national_state_pie <- ggplot(national_state_data, aes(x = "", y = n, fill = label)) +
+  geom_col(color = "darkgrey") +
+  coord_polar(theta = "y") +
+  scale_fill_manual(values = c("State" = "darkgrey", "National" = "white")) +
+  labs(fill = "Poll Type") +
+  theme_void() +
+  theme(legend.position = "bottom")
+
+# Prepare data for Kamala vs. Trump pie chart
+candidate_data <- analysis_data %>%
+  filter(candidate_name %in% c("Kamala Harris", "Donald Trump")) %>%
+  count(candidate_name)
+
+# Pie chart for Kamala vs. Trump
+candidate_pie <- ggplot(candidate_data, aes(x = "", y = n, fill = candidate_name)) +
+  geom_col(color = "white") +
+  coord_polar(theta = "y") +
+  scale_fill_manual(values = c("Kamala Harris" = "steelblue", "Donald Trump" = "indianred")) +
+  labs( fill = "Candidate") +
+  theme_void() +
+  theme(legend.position = "bottom")
+
+# Combine the two pie charts side by side
+combined_plot <- national_state_pie + candidate_pie + plot_layout(ncol = 2)
+
+# Display the combined plot
+combined_plot
+
+```
+
+\newpage
+
+### Support Trend For Candidates
+
+```{r, fig.width = 12, fig.height = 6}
+#| warning: false
+#| message: false
+#| echo: false
+#| label: fig-trend
+#| fig-cap: "Figure showing support trends for Kamala Harris and Donald Trump over time. Trend lines indicate slight shifts in support as the election nears, with consistent polling frequency throughout the period."
+
+# Sample data creation (Replace this with your actual data)
+# Assuming your dataset `analysis_data` has columns: date, pct, and candidate_name
+
+# Filtering for only the necessary candidates if required
+filtered_data <- analysis_data %>%
+  filter(candidate_name %in% c("Kamala Harris", "Donald Trump"))
+
+# Plotting
+ggplot(filtered_data, aes(x = as.Date(end_date), y = pct, color = candidate_name)) +
+  geom_point(alpha = 0.3, size = 1.5) +
+  geom_smooth(method = "loess", se = TRUE, span = 0.2) +
+  scale_color_manual(values = c("Kamala Harris" = "steelblue", "Donald Trump" = "indianred")) +
+  labs(x = "Date", y = "Support (%)", title = "Support Trends for Kamala Harris and Donald Trump") +
+  theme_minimal() +
+  theme(
+    legend.position = "right",
+    legend.title = element_blank(),
+    axis.text.x = element_text(angle = 0),
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  )
+
+```
+
+@fig-trend shows the support trends for Kamala Harris and Donald Trump from August to October. Each point represents a poll result, color-coded by candidate, with the trend lines highlighting the overall changes in support over time. Kamala Harris's support remains relatively steady but shows slight fluctuations around mid-September, while Donald Trump's support appears to have a small upward trend toward October. The distribution of points is dense throughout, reflecting consistent polling activity, though some dates show more concentrated polling. This visualization indicates that while both candidates maintain stable support levels, minor shifts occur as the election approaches, underscoring the importance of tracking trends over time rather than relying on individual polls.
+
+\newpage
+
+### Relationship Between Sample Size and Suppoert for Candidates
+
+```{r, fig.width = 12, fig.height = 6}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-pct
+#| fig-cap: "Relationship between Sample Size and Support Percentage for Donald Trump and Kamala Harris, showing slight downward and upward trends in support with increasing sample size for Trump and Harris, respectively."
+
+# Filter data for both candidates and cap sample size at 12,000
+filtered_data <- analysis_data %>%
+  filter(sample_size <= 12000, candidate_name %in% c("Kamala Harris", "Donald Trump"))
+
+# Create the plot for both Kamala Harris and Donald Trump
+ggplot(filtered_data, aes(x = sample_size, y = pct, color = candidate_name)) +
+  geom_point(size = 0.5, alpha = 0.7) +  # Smaller dots with slight transparency
+  geom_smooth(aes(group = candidate_name), method = "lm", se = FALSE, color = "darkgrey", size = 0.8) +  # LOESS smoothing line
+  
+  # Custom colors for candidate
+  scale_color_manual(values = c("Kamala Harris" = "steelblue", "Donald Trump" = "indianred")) +
+  
+  # Facet wrap by candidate name to get two plots
+  facet_wrap(~ candidate_name, scales = "free_y") +
+  
+  # Minimal theme adjustments
+  theme_minimal() +
+  theme(
+    panel.grid.major = element_blank(),  # Remove major gridlines
+    panel.grid.minor = element_blank(),  # Remove minor gridlines
+    legend.position = "none",  # Remove legend as colors are self-explanatory
+    plot.title = element_text(hjust = 0.5),  # Center the title
+    axis.line = element_line(color = "black"),  # Add axis lines
+    panel.border = element_blank(),  # Remove panel border
+    axis.line.y.right = element_line(color = "black"),  # Add right spine
+    axis.line.x.top = element_blank()  # Remove top spine
+  ) +
+  labs(x = "Sample Size", y = "Support (%)")  # Title and axis labels
+
+```
+
+@fig-pct shows the relationship between sample size and support percentage for Donald Trump and Kamala Harris. For both candidates, the majority of polls have a sample size below 2,500, but there are some larger polls exceeding 10,000 respondents. In Trump’s chart, there’s a slight downward trend, suggesting that larger sample sizes may show marginally lower support. In contrast, Harris's chart shows a slight upward trend with larger sample sizes, indicating a marginal increase in support with larger poll samples. This highlights the variability in polling support depending on the sample size, emphasiszing the importance of including sampel size in our model.
+
+### Variability of Candidate support Across US States
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| inlcude: false
+
+# Create the dataset for mapping support
+support_by_state <- analysis_data %>%
+  # Filter for only Kamala Harris and Donald Trump
+  filter(candidate_name %in% c("Kamala Harris", "Donald Trump")) %>%
+  # Group by state and candidate
+  group_by(state, candidate_name) %>%
+  # Calculate the mean support percentage for each candidate in each state
+  summarize(mean_support = mean(pct, na.rm = TRUE)) %>%
+  # Spread the data so that each state has a column for each candidate's mean support
+  pivot_wider(names_from = candidate_name, values_from = mean_support) %>%
+  # Rename columns for clarity
+  rename(kamala_mean_support = `Kamala Harris`, trump_mean_support = `Donald Trump`) %>%
+  # Calculate total mean support for both candidates in each state
+  mutate(total_support = kamala_mean_support + trump_mean_support,
+         # Calculate proportion of support for each candidate out of the total
+         kamala_proportion = kamala_mean_support / total_support,
+         trump_proportion = trump_mean_support / total_support) %>%
+# Select relevant columns
+  select(state, kamala_proportion, trump_proportion)
+
+```
+
+```{r}
+#| warning: false
+#| message: false
+#| echo: false
+#| include: false
+
+map_data <- us_states %>%
+  left_join(support_by_state, by = c("NAME" = "state")) 
+```
+
+```{r, fig.width = 12, fig.height = 6}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-map1
+#| fig-cap: "Map showing the proportion of support for Kamala Harris relative to Donald Trump across U.S. states. Blue indicates states where Harris has higher support, while red indicates states where Trump leads. Color intensity reflects the magnitude of support difference, with gray indicating insufficient polling data."
+
+
+# Filter out Alaska, Hawaii, and Puerto Rico using subset
+map_data_continental <- subset(map_data, !NAME %in% c("Alaska", "Hawaii", "Puerto Rico"))
+
+
+ggplot(map_data_continental) +
+  geom_sf(aes(fill = kamala_proportion * 100), color = "white", size = 0.2) +
+  geom_text(aes(label = STUSPS, geometry = geometry), 
+            stat = "sf_coordinates", color = "black", size = 3) +  # Adjust color and size as needed
+  scale_fill_distiller(palette = "RdBu", direction = 1, na.value = "grey", 
+                       name = "Harris's Mean Support in Polls (%)") +
+  theme_minimal() +
+  theme(
+    panel.grid = element_blank(),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    aspect.ratio = 0.5  # Make the plot wider
+  ) 
+
+
+```
+
+@fig-map1 shows the average support for Kamala Harris as a proportion relative to both Kamala Harris and Donald Trump across the continental U.S. states. States shaded in blue indicate a higher proportion of support for Harris, while red shades represent stronger support for Trump, with color intensity reflecting the support margin. Gray-shaded states lack sufficient polling data.
+
+In key swing states, such as Pennsylvania, Michigan, and Arizona, we observe a balanced distribution of support, suggesting close competition in these battleground areas. Meanwhile, traditional Democratic strongholds, like California and New York, show a clear preference for Harris, with deeper blue shades. Conversely, traditionally Republican states, such as Texas and Tennessee, exhibit higher support for Trump, with intense red shades highlighting his advantage. This visualization emphasizes the varied regional dynamics of candidate support, with distinct patterns in both competitive and historically partisan states.
+
+# Forecasting Election Outcome through Pooling Polls {#sec-model}
 
 ## Forecasting Approach
 
@@ -319,350 +451,292 @@ The polls of polls methodology is widely used in election prediction as it aggre
 
 In our approach, we will employ linear modeling of voter support percentage (pct) on pollster and other independent variables such as sample size, poll recency, and poll scope (state vs. national). This will allow us to smooth out the inherent noise, biases, and variability across different pollsters. Once we obtain the predicted values from our model, we will weight these predictions based on the numeric grade (quality score) of each pollster to calculate an overall national estimate of the outcome. Additionally, we will separately compute estimates for key battleground states, where voter behavior can be more volatile and pivotal in deciding the final outcome of the election. This approach helps us capture both national trends and critical state-level dynamics.
 
-## **Exploration of Independent Variables**
+## Model
 
-### Support for Kamala Harris by Sample Size and Polling Level
+In this section, we aim to address the inherent biases and differences present in various polling data to arrive at a robust prediction model. The core challenge lies in selecting a model with an optimal balance between complexity and fit, ensuring it accurately captures the dynamics of polling data while avoiding overfitting. To this end, we carefully evaluated different model specifications to determine the most appropriate one for our forecasting purpose.
 
-\[\@fig-sample\] suggests that the relationship between support for Kamala Harris and sample size shows a slight positive trend, indicating a small increase in support as sample sizes grow. Both national (blue) and state (green) polls reflect this upward trend, although the effect is minimal. Since voting outcomes often depend on small margins, this subtle increase in support with larger sample sizes could still be relevant in predicting overall support.
+Given that variables like numeric grade and pollscore are perfectly collinear with pollster, they were excluded from the regression analysis to avoid multicollinearity issues. These variables, however, remain integral to our weighting strategy, where they will be used to adjust for differences in polling accuracy and reliability. Instead, we focus on key features such as pollster, sample size, state, and recency, gradually adding complexity to the model.
+
+By systematically comparing model specifications that incorporate these variables, we aim to select the model with the right balance between predictive accuracy and generalizability, ultimately providing the best possible forecast.
+
+## Model Set Up
+
+We aim to model the percentage of support for Kamala Harris and Donald Trump in each poll as a function of the pollster the sample size, the state, and the recency of the poll.
+
+$$
+y_i = \alpha + \beta_1 \cdot \mathrm{pollster}_i + \beta_2 \cdot \mathrm{sample\_size}_i + \beta_3 \cdot \mathrm{recency}_i +  \beta_4 \cdot \mathrm{state}_i + \epsilon_i
+$$
+
+Where
+
+-   $y_i$ is the percentage of support for candidate in poll i,
+
+-   $α$ is the intercept,
+
+-   $β_1$ captures the effect of the polling organization,
+
+-   $β_2$ captures the effect of the sample size,
+
+-   $β_3$ captures the effect of recency (how recent the poll is),
+
+-   $β_4$ capture the effects of the different states
+
+-   $\epsilon_i$ represents the error term, assumed to follow a normal distribution with mean 0.
+
+## Model Justification
 
 ```{r}
+#| echo: false
 #| warning: false
 #| message: false
-#| echo: false
-#| label: fig-sample
-#| fig-cap: Sample Size vs. Support for Kamala Harris, Colored by Pollscope (National vs. State)
-
-# Custom colors for pollscope
-national_color <- "chartreuse3"
-state_color <- "steelblue"
-
-# Create the plot for Kamala Harris with the requested adjustments
-ggplot(analysis_data %>% filter(candidate_name == "Kamala Harris"), 
-       aes(x = sample_size, y = pct, color = factor(national))) +
-  geom_point(size = 0.5, alpha = 0.9) +  # Smaller dots with slight transparency
-  geom_smooth(aes(group = 1), method = "lm", se = FALSE, color = "azure4") +  # Linear model smoothing
-  
-  # Custom colors for national (1 for National, 0 for State)
-  scale_color_manual(values = c("1" = national_color, "0" = state_color), 
-                     labels = c("National", "State")) +  # Pollscope categories with custom colors
-  
-  # Same minimal styling
-  theme_minimal() +
-  theme(
-    panel.grid.major = element_blank(),  # Remove major gridlines
-    panel.grid.minor = element_blank(),  # Remove minor gridlines
-    legend.title = element_blank(),  # No title for the legend
-    legend.position = "bottom",  # Move legend to the bottom
-    plot.title = element_text(hjust = 0.5),  # Center the title
-    axis.line = element_line(color = "black"),  # Add axis lines
-    panel.border = element_blank(),  # Remove panel border
-    axis.line.y.right = element_line(color = "black"),  # Add right spine
-    axis.line.x.top = element_blank()  # Remove top spine
-  ) +
-  labs(x = "Sample Size", y = "Support (%)")  # No title, just axis labels
+#| label: fig-causal-model
+#| fig-cap: "Directed Acyclic Graph illustrating factors influencing candidate support, with poll attributes (Pollster, Sample Size, State, Recency) as direct contributors and unobserved confounders representing potential biases in polling results."
+# Load and display the saved PNG
+knitr::include_graphics(here("other", "graphs", "polls_of_polls_dag.png"))
 
 ```
 
-### Variation in Support for Kamala Harris Among Most Frequent Pollsters
+In our model, we aim to smooth out discrepancies and biases across various polling organizations using a polls-of-polls approach. Given the potential for individual pollsters to introduce systematic differences—due to variations in sampling methods, question phrasing, and historical leanings—our model includes a pollster variable to adjust for these organization-specific biases. This allows us to capture an aggregated view of public support that is less susceptible to the idiosyncrasies of any single poll. Furthermore, we incorporate sample size as a predictor, as polls with larger samples tend to yield more stable and reliable results, reducing random fluctuations caused by smaller samples. The state variable accounts for regional political differences, ensuring that the model captures varying levels of support across geographic and demographic groups, which is crucial for understanding the nuanced political landscape. Additionally, recency is included to prioritize more recent polls, as public opinion can shift rapidly in response to political events, and recent data is generally more reflective of current sentiment. By integrating these factors, our model seeks to produce a more stable and comprehensive measure of candidate support, reducing noise from individual poll discrepancies and focusing on a balanced, up-to-date aggregation of polling data.
 
-[@fig-top5pollsters] above shows the variation in support for Kamala Harris across the five most frequent pollsters. Notably, the median support levels differ between pollsters, indicating variability in central estimates of Harris’s support. For instance, Siena/NYT reports a higher median compared to Redfield & Wilton Strategies. Additionally, the differing ranges of support estimates highlight potential discrepancies in the methodologies, sample sizes, and biases employed by each pollster. This suggests that different pollster have different interpretations of candidate support, underlining the importance of aggregating data from multiple sources to avoid over-reliance on any single pollster.
+We opted for a linear model due to its capacity to quantify the marginal effects of each predictor (pollster, sample size, state, and recency) on candidate support in a straightforward manner. This structure is well-suited to our polls-of-polls approach, as it allows for the estimation of fixed effects that can control for systematic biases across pollsters, while accommodating the influence of sample size and recency as continuous variables. All modeling was conducted using the base R package [@citeR], specifically utilizing the lm() function from the stats package for linear regression analysis.
+
+## Model Results
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: tbl-summary
+#| tbl-cap: "Model performance summary showing improved fit and accuracy as State and Recency are added, with R² increasing from 0.375 in Model 1 to 0.774 in Model 3, and RMSE decreasing from 3.053 to 1.836." 
+# Load your models
+model1 <- readRDS(here("models/model1.rds"))
+model2 <- readRDS(here("models/model2.rds"))
+model3 <- readRDS(here("models/model3.rds"))
+
+# Extract summary statistics and add variables included in each model
+model_summary <- tibble::tibble(
+  Model = c("Model 1", "Model 2", "Model 3"),
+  Variables = c("Pollster, Sample Size", "Pollster, Sample Size, State", "Pollster, Sample Size, State, Recency"),
+  `R²` = c(summary(model1)$r.squared, summary(model2)$r.squared, summary(model3)$r.squared),
+  `Adjusted R²` = c(summary(model1)$adj.r.squared, summary(model2)$adj.r.squared, summary(model3)$adj.r.squared),
+  `AIC` = c(AIC(model1), AIC(model2), AIC(model3)),
+  `BIC` = c(BIC(model1), BIC(model2), BIC(model3)),
+  `RMSE` = c(sqrt(mean(residuals(model1)^2)), sqrt(mean(residuals(model2)^2)), sqrt(mean(residuals(model3)^2)))
+)
+
+# Display the table using kable
+model_summary %>%
+  kable(caption = "Model Summary with Included Variables", digits = 3) %>%
+  kable_styling(full_width = FALSE)
+
+```
+
+@tbl-summary summarizes the performance metrics for three models with progressively added variables. Model 1, which includes only Pollster and Sample Size, achieves an R² of 0.375, indicating that these variables alone explain about 37.5% of the variance in candidate support. Model 2 incorporates State as an additional predictor, resulting in a substantial improvement, with an R² of 0.720 and a reduction in both AIC and RMSE, showing better model fit and predictive accuracy. Model 3 further adds Recency, which increases the R² to 0.774 and decreases the RMSE to 1.836, indicating enhanced explanatory power and prediction accuracy. This progression highlights the benefit of adding contextual variables like State and Recency to better capture the complexities of polling data.
+
+## Prediction
+
+To predict Kamala Harris' overall support, we used a weighted average approach based on the quality of each poll. The weights are calculated using each poll's `numeric_grade`, which reflects the reliability and transparency of the polling methodology.
+
+We define the weight for each pollster $w_i$ as follows:
+
+$$
+w_i = \frac{\mathrm{numeric\_grade}_i \times (\mathrm{maxPollscore} - \mathrm{pollscore}_i)}{\sum_{i=1}^{n} \mathrm{numeric\_grade}_i \times (\mathrm{maxPollscore} - \mathrm{pollscore}_i)}
+$$
+
+where:
+
+-   $w_i$ represents the weight assigned to poll i,
+
+-   $numericgrade_i$ is the numeric grade of poll i, and
+
+-   $n$ is the total number of polls used in the analysis.
+
+-   $pollscore_i$ is the is the pollscore of poll i which reflects the estimated bias of the poll (with more negative values indicating less bias)
+
+-   $maxPollscore$ is the maximum pollscore across all polls.
+
+The weight assigned to each poll combines both its quality (as represented by the numeric grade) and its level of bias (as indicated by the pollscore). Since a more negative pollscore reflects a lower level of bias, the formula uses the difference between the maximum pollscore and each poll’s specific pollscore. This approach gives more weight to polls that are both highly graded (indicating higher reliability and transparency) and less biased.By combining these two factors, the weighting system emphasizes polls that are reliable and minimally biased, ensuring that they have a stronger influence in the overall calculation. Additionally, the total of all weights is normalized to sum to one, so each poll’s weight is proportionate to its quality and relative lack of bias, resulting in a more balanced and accurate average of public support.
+
+Using these weights, the overall weighted prediction of candidate's support is calculated by summing the weighted predicted values from our regression model:
+
+$$
+\text{Overall Weighted Support} = \sum_{i=1}^{n} w_i \cdot \hat{y}_i
+$$
+
+-   $\hat{y}_i$ is the predicted percentage of support for Kamala Harris from poll i.
+
+### Comparing Overall Weighted Support Across All Polls
+
+Aggregating support across all polls and applying our weighted approach, we estimate the overall support for each candidate. The weights, calculated based on both the poll's numeric grade and poll score, ensure that higher-quality polls with less bias contribute more to our estimates. Based on this approach, Kamala Harris has an estimated overall weighted support of around 47.77%, while Donald Trump stands at around 46.31%. This aggregation provides a comprehensive view, taking into account the varied methodologies and sampling qualities of different polling organizations.
 
 ```{r}
 #| warning: false
 #| message: false
 #| echo: false
-#| label: fig-top5pollsters
-#| fig-cap: "Support for Kamala Harris across the top 5 pollsters by poll count."
+#| include: true
 
-# Get top 5 pollsters by poll count
-top5_pollsters <- analysis_data %>%
+model6 <- readRDS(here("models/model6.rds"))
+
+# Step 1: Subset data for Kamala Harris, calculate weights, join with fitted values from model3, and calculate weighted_pct
+kamala_data <- analysis_data %>%
   filter(candidate_name == "Kamala Harris") %>%
-  count(pollster, sort = TRUE) %>%
-  top_n(5, n) %>%
-  pull(pollster)
-
-# Filter the data for only these top 5 pollsters
-top5_data <- analysis_data %>%
-  filter(pollster %in% top5_pollsters & candidate_name == "Kamala Harris")
-
-# Custom colors for boxplot fill
-boxplot_colors <- c("chartreuse3", "steelblue", "indianred", "purple", "darkorange")
-
-# Create the boxplots with thinner borders, smaller points, and rotated x-axis labels
-ggplot(top5_data, aes(x = pollster, y = pct, fill = pollster)) +
-  geom_boxplot(size = 0.2, outlier.size = 0.5) +  # Thinner box lines and smaller outliers
-  scale_fill_manual(values = boxplot_colors) +
-  theme_minimal() +  # Minimal theme
-  theme(
-    panel.grid.major = element_blank(),  # Remove major gridlines
-    panel.grid.minor = element_blank(),  # Remove minor gridlines
-    legend.position = "none",  # No legend needed for boxplots
-    axis.line = element_line(color = "black"),  # Add axis lines
-    plot.title = element_text(hjust = 0.5),  # Center title
-    axis.text.x = element_text(angle = 20, hjust = 1),  # Rotate x-axis labels for better readability
-    axis.line.y.right = element_line(color = "black"),  # Add right spine for clean look
-    axis.line.x.top = element_blank(),  # Remove top spine
-    panel.border = element_blank()  # Remove panel border
-  ) +
-  labs(x = "Pollster", y = "Support (%)")  # Labels
-
-```
-
-### Support for Kamala Harris Based on Recency of Polls and Pollster Quality
-
-In \[\@fig-enddate\], we observe a slight increasing trend in support for Kamala Harris as the end date of polls progresses towards October. This may indicate a gradual improvement in her polling performance over time. The color gradient, reflecting the pollster's error and bias (Pollscore), reveals variations in bias: greener points represent more negative biases, while redder points indicate more positive biases.
-
-While the recency of the polls shows a stable trend in Harris's support, the wide distribution of bias (Pollscore) values suggests that pollster quality can vary substantially. These variations could influence the model's predictions if left unaddressed. Hence, including both recency and pollster quality as predictor variables in the model might be valuable to account for such variations. Further model diagnostics and validation will help decide if these variables are significant.
-
-```{r}
-#| warning: false
-#| message: false
-#| echo: false
-#| label: fig-enddate
-#| fig-cap: "Support for Kamala Harris based on End Date and colored by Pollster's Error and Bias."
-
-# Define the color gradient based on pollscore
-ggplot(analysis_data %>% filter(candidate_name == "Kamala Harris"), aes(x = end_date, y = pct, color = pollscore)) +
-  geom_point(size = 0.8, alpha = 1) +  # Adjust point size and transparency
-  geom_smooth(method = "lm", se = FALSE, color = "azure4") +  # Add a smooth trend line for overall support
-  scale_color_gradient2(low = "blue", mid = "green", high = "red", midpoint = 0) +  # Color gradient
-  theme_minimal() +  # Minimal theme as usual
-  theme(
-    panel.grid.major = element_blank(),  # Remove major gridlines
-    panel.grid.minor = element_blank(),  # Remove minor gridlines
-    legend.position = "bottom",  # Legend at the bottom
-    axis.line = element_line(color = "black"),  # Add axis lines
-    panel.border = element_blank(),  # Remove panel border
-    axis.line.y.right = element_line(color = "black"),  # Add right spine for clean look
-    axis.line.x.top = element_blank()  # Remove top spine
-  ) +
-  labs(x = "Date Poll Ended",
-       y = "Support (%)",
-       color = "Error and Bias of Pollster (Low to High)")  # Updated label for color gradient
-
-```
-
-### Political Leanings of Different State
-
-[@fig-mapinterac] provides a state-level representation of Kamala Harris's average support across the U.S., with the darker blue shades indicating states where her support is higher, and the redder tones showing where her support is lower. Gray areas represent states where we have no polling data available.
-
-The gradient highlights notable geographic trends. Harris has the strongest support in states like Vermont, Massachusetts, and New York, while states like Utah and West Virginia show considerably lower levels of support. A distinct pattern emerges in the West, where coastal states like California favor Harris more strongly, contrasting with inland states like Wyoming and Utah.
-
-This reveals that political leanings differ greatly by state, and this regional variation should be controlled for in any regression model analyzing poll data. The map serves as a useful tool for visualizing regional variations in voter support for Kamala Harris as reflected in the available polling data.
-
-```{r}
-#| warning: false
-#| message: false
-#| echo: false
-#| label: fig-mapinterac
-#| fig-cap: "Average Support for Kamala Harris in Different States estimated by Polls"
-  # For string manipulation
-
-# Filter out non-continental states (Hawaii and Alaska)
-us_states_filtered <- us_states %>% 
-  filter(!NAME %in% c("Alaska", "Hawaii"))
-
-# Ensure correct merge between map data and Kamala's support data
-map_data_full <- left_join(us_states_filtered, mapping_data, by = c("NAME" = "state"))
-
-# Create centroids for state labels
-state_centroids <- st_centroid(us_states_filtered)
-
-# Plot using geom_sf() for sf objects
-p <- ggplot(map_data_full) +
-  geom_sf(aes(fill = mean_support_kamala, text = paste("State:", str_to_title(NAME), "<br>Average Support:", round(mean_support_kamala, 2))), color = "white") +  # Capitalize state names
-  scale_fill_distiller(palette = "RdBu", direction = 1, na.value = "gray", name = "Kamala's Support") +  # Reverse RdBu color gradient
-  geom_text(data = state_centroids, aes(geometry = geometry, label = STUSPS), stat = "sf_coordinates", size = 2) +  # State labels
-  labs(title = "Support for Kamala Harris by State", 
-       caption = "States with no polling data are shown in gray") +
-  theme_minimal() +
-  theme(
-    legend.position = "right",
-    plot.title = element_text(hjust = 0.5),
-    panel.grid = element_blank(),  # Remove grid lines
-    axis.title = element_blank(),  # No axis titles for maps
-    axis.text = element_blank(),   # No axis labels
-    axis.ticks = element_blank()   # No axis ticks
+  mutate(
+    weight = numeric_grade * (max(analysis_data$pollscore, na.rm = TRUE) - pollscore) /
+             sum(numeric_grade * (max(analysis_data$pollscore, na.rm = TRUE) - pollscore), na.rm = TRUE),
+    fitted_values = fitted(model3),  # Replace this with actual fitted values for Kamala
+    weighted_pct = fitted_values * weight  # Calculate weighted percentage for Kamala
   )
 
+# Calculate the overall weighted prediction for Kamala Harris
+kamala_weighted_support <- sum(kamala_data$weighted_pct, na.rm = TRUE)
+
+# Step 2: Subset data for Donald Trump, calculate weights, join with fitted values from model6, and calculate weighted_pct
+trump_data <- analysis_data %>%
+  filter(candidate_name == "Donald Trump") %>%
+  mutate(
+    weight = numeric_grade * (max(analysis_data$pollscore, na.rm = TRUE) - pollscore) /
+             sum(numeric_grade * (max(analysis_data$pollscore, na.rm = TRUE) - pollscore), na.rm = TRUE),
+    fitted_values = fitted(model6),  # Replace this with actual fitted values for Trump
+    weighted_pct = fitted_values * weight  # Calculate weighted percentage for Trump
+  )
+
+# Calculate the overall weighted prediction for Donald Trump
+trump_weighted_support <- sum(trump_data$weighted_pct, na.rm = TRUE)
 
 
 ```
 
-### Investigating the Effect of Poll Recency on Candidate Support
+### State-Level Predictions
+
+In this section, we examine the predicted support for Kamala Harris and Donald Trump within each state, based on our weighted approach. By aggregating poll results within each state and applying weights that adjust for poll quality and bias, we can estimate candidate support with a more localized perspective. This allows us to identify state-by-state competition and highlight key battleground states where the margins are close.
+
+For each state, we compare the predicted support percentages and determine the projected winner based on which candidate has higher weighted support. Additionally, we calculate the margin of difference between the candidates, which can provide insights into how close each state’s race is.
 
 ```{r}
 #| warning: false
 #| message: false
 #| echo: false
-# Custom colors for candidates
-trump_color <- "indianred"
-harris_color <- "steelblue"
+#| include: false
+# Define the max pollscore across the dataset
+max_pollscore <- max(analysis_data$pollscore, na.rm = TRUE)
 
-# Create the plot with the requested adjustments (recency vs support)
-ggplot(analysis_data, aes(x = recency, y = pct, color = candidate_name)) +
-  geom_point(size = 0.5, alpha = 0.7) +
-  geom_smooth(method = "lm", se = FALSE) + # Smaller dots with slight transparency
-  scale_color_manual(values = c("Donald Trump" = trump_color, "Kamala Harris" = harris_color)) +  # Custom colors
-  theme_minimal() +  # Remove grey background
-  theme(
-    panel.grid.major = element_blank(),  # Remove major gridlines
-    panel.grid.minor = element_blank(),  # Remove minor gridlines
-    legend.title = element_blank(),  # Remove "candidate_name" as title
-    legend.position = "bottom",  # Move legend to the bottom
-    plot.title = element_text(hjust = 0.5),  # Center the title
-    axis.line = element_line(color = "black"),  # Add axis lines
-    panel.border = element_blank(),  # Remove panel border
-    axis.line.y.right = element_line(color = "black"),  # Add right spine for Kamala Harris
-    axis.line.x.top = element_blank()  # Remove top spine
+# Step 1: Subset data for Kamala Harris, join fitted values, then calculate weights within each state
+kamala_data_a2 <- analysis_data %>%
+  filter(candidate_name == "Kamala Harris") %>%
+  mutate(fitted_values = fitted(model3)) %>%  # Add fitted values from model 3 for Kamala Harris
+  group_by(state) %>%
+  mutate(
+    weight = numeric_grade * (max_pollscore - pollscore) /
+             sum(numeric_grade * (max_pollscore - pollscore), na.rm = TRUE)
+  ) %>%
+  # Calculate the overall weighted prediction for each state
+  summarize(support_kamala = sum(fitted_values * weight, na.rm = TRUE))
+
+# Step 2: Repeat for Donald Trump with model6
+trump_data_a2 <- analysis_data %>%
+  filter(candidate_name == "Donald Trump") %>%
+  mutate(fitted_values = fitted(model6)) %>%  # Add fitted values from model 6 for Donald Trump
+  group_by(state) %>%
+  mutate(
+    weight = numeric_grade * (max_pollscore - pollscore) /
+             sum(numeric_grade * (max_pollscore - pollscore), na.rm = TRUE)
+  ) %>%
+  # Calculate the overall weighted prediction for each state
+  summarize(support_trump = sum(fitted_values * weight, na.rm = TRUE))
+
+# Step 3: Join the two datasets by state
+state_support_data <- left_join(kamala_data_a2, trump_data_a2, by = "state")
+
+# Add a new column 'winner' based on higher support values
+state_support_data <- state_support_data %>%
+  mutate(
+    winner = ifelse(support_kamala > support_trump, "Kamala Harris", "Donald Trump"),
+    margin = abs(support_kamala - support_trump)
+  )
+```
+
+```{r, fig.width = 12, fig.height = 6}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-map2
+#| fig-cap: "Predicted 2024 U.S. Presidential Election winner by state, with Kamala Harris-leaning states in blue, Donald Trump-leaning states in red, and states lacking sufficient polling data in gray. The map highlights traditional Democratic and Republican strongholds as well as key battleground states."
+
+# Filter out Alaska, Hawaii, and Puerto Rico from state_support_data
+map_data_continental <- subset(us_states, !NAME %in% c("Alaska", "Hawaii", "Puerto Rico"))
+
+# Merge with state_support_data to add winner info
+map_data_continental <- map_data_continental %>%
+  left_join(state_support_data,  by = c("NAME" = "state")) 
+
+# Define the colors for each category
+color_scale <- c("Kamala Harris" = "steelblue", "Donald Trump" = "indianred", "No Polling Data" = "grey")
+
+# Plotting the map with ggplot2
+ggplot(map_data_continental) +
+  geom_sf(aes(fill = winner), color = "white", size = 0.2) +
+  geom_text(aes(label = STUSPS, geometry = geometry), 
+            stat = "sf_coordinates", color = "black", size = 3) +  # Adjust text size as needed
+  scale_fill_manual(
+    values = color_scale, 
+    na.value = "grey",
+    name = "2024 Election Winner",
+    labels = c("Kamala Harris", "Donald Trump", "No Polling Data")
   ) +
-  labs(title = "Recency vs Support for Kamala Harris and Donald Trump",
-       x = "Poll Recency (days since poll end date)", 
-       y = "Support (%)") +
-  facet_wrap(~ candidate_name, scales = "free_y")  # Separate plots for each candidate
-
-```
-
-### Investigate the effect of sample size on support estimates
-
-```{r}
-#| warning: false
-#| message: false
-#| echo: false
-
-
-# Custom colors for candidates
-trump_color <- "indianred"
-harris_color <- "steelblue"
-
-# Create the plot with the requested adjustments
-ggplot(analysis_data, aes(x = sample_size, y = pct, color = candidate_name)) +
-  geom_point(size = 0.5, alpha = 0.9) + # Smaller dots with slight transparency
-  geom_smooth(method = "lm", se = FALSE)+ 
- 
-  scale_color_manual(values = c("Donald Trump" = trump_color, "Kamala Harris" = harris_color)) +  # Custom colors
-  theme_minimal() +  # Remove grey background
+  theme_minimal() +
   theme(
-    panel.grid.major = element_blank(),  # Remove major gridlines
-    panel.grid.minor = element_blank(),  # Remove minor gridlines
-    legend.title = element_blank(),  # Remove "candidate_name" as title
-    legend.position = "bottom",  # Move legend to the bottom
-    plot.title = element_text(hjust = 0.5),  # Center the title
-    axis.line = element_line(color = "black"),  # Add axis lines
-    panel.border = element_blank(),  # Remove panel border
-    axis.line.y.right = element_line(color = "black"),  # Add right spine for Kamala Harris
-    axis.line.x.top = element_blank()  # Remove top spine
-  ) +
-  labs(title = "Sample Size vs Support for Kamala Harris and Donald Trump",
-       x = "Sample Size", 
-       y = "Support (%)") +
-  facet_wrap(~ candidate_name, scales = "free_y")
-```
-
-### Distribution of support for Candidates by State
-
-```{r}
-# Calculate mean support for each candidate in each state
-state_support <- analysis_data %>%
-  group_by(state, candidate_name) %>%
-  summarise(mean_support = mean(pct)) %>%
-  ungroup()
-
-# Pivot the data to have one row per state with separate columns for Harris and Trump
-state_support_wide <- state_support %>%
-  pivot_wider(names_from = candidate_name, values_from = mean_support)
-```
-
-```{r}
-# Calculate mean support for each candidate in each state
-state_support <- analysis_data %>%
-  group_by(state, candidate_name) %>%
-  summarise(mean_support = mean(pct))
-
-# Calculate the proportion of support for Kamala Harris
-state_support <- state_support %>%
-  mutate(harris_proportion = Kamala_Harris / (Kamala_Harris + Donald_Trump))
-
-# Turn ggplot to plotly for interactivity, add hover template for better control over display
-ggplotly(p, tooltip = "text")
-
+    panel.grid = element_blank(),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    aspect.ratio = 0.5  # Adjust the aspect ratio to make the map wider
+  ) 
 
 ```
 
-# Model
+@fig-map2 presents the predicted winner of the 2024 U.S. Presidential Election by state based on aggregated polling data, with red representing states projected to favor Kamala Harris and blue indicating those favoring Donald Trump. Notably, traditional Democratic strongholds in the Northeast and West Coast, such as California, New York, and Washington, show solid support for Harris. Conversely, traditional Republican states, including Texas, Florida, and much of the South, show strong support for Trump.
 
-The goal of our modelling strategy is twofold. Firstly,...
-
-Here we briefly describe the Bayesian analysis model used to investigate... Background details and diagnostics are included in [Appendix -@sec-model-details].
-
-## Model set-up
-
-Define $y_i$ as the number of seconds that the plane remained aloft. Then $\beta_i$ is the wing width and $\gamma_i$ is the wing length, both measured in millimeters.
-
-\begin{align} 
-y_i|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
-\mu_i &= \alpha + \beta_i + \gamma_i\\
-\alpha &\sim \mbox{Normal}(0, 2.5) \\
-\beta &\sim \mbox{Normal}(0, 2.5) \\
-\gamma &\sim \mbox{Normal}(0, 2.5) \\
-\sigma &\sim \mbox{Exponential}(1)
-\end{align}
-
-We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`.
-
-### Model justification
-
-We expect a positive relationship between the size of the wings and time spent aloft. In particular...
-
-We can use maths by including latex between dollar signs, for instance $\theta$.
-
-# Results
-
-Our results are summarized in @tbl-modelresults.
+Swing states, like Pennsylvania, Michigan, and Wisconsin, are predominantly leaning toward Harris, indicating a possible advantage for her in these key battlegrounds, although other typical swing states like Arizona and Georgia lean toward Trump. Gray-shaded states lack sufficient polling data to make a prediction, reflecting areas of data scarcity in the model's projections. This visualization highlights the geographical and political divides across the U.S., as well as the critical role swing states play in determining the election outcome.
 
 ```{r}
 #| echo: false
-#| eval: true
 #| warning: false
 #| message: false
+#| label: tbl-battleground-states
+#| tbl-cap: "Predicted support for Kamala Harris and Donald Trump across key battleground states, indicating the winner and the support margin (%) in each state."
 
-library(rstanarm)
+# Define battleground states based on provided list
+battleground_states <- c("Pennsylvania", "Michigan", "North Carolina", "Wisconsin", "Nevada", "Arizona", "Georgia")
 
-first_model <-
-  readRDS(file = here::here("models/first_model.rds"))
+# Display the table of battleground states with adjusted column names
+battleground_table <- state_support_data %>%
+  filter(state %in% battleground_states) %>%
+  select(
+    State = state,
+    `Kamala Support (%)` = support_kamala,
+    `Trump Support (%)` = support_trump,
+    `Predicted Winner` = winner,
+    `Support Margin (%)` = margin
+  )
+
+# Display the table using kable
+knitr::kable(battleground_table)
+
 ```
 
-```{r}
-#| echo: false
-#| eval: true
-#| label: tbl-modelresults
-#| tbl-cap: "Explanatory models of flight time based on wing width and wing length"
-#| warning: false
+USAFacts[@usafacts],FiveThirtyEight[@FiveThirtyEight] and many other polling websites are calling Arizona, Georgia, Michigan, Pennsylvania, Wisconsin, North Carolina, Nevada the 'swing states' of the 2024 presidential election.Polling in swing states is crucial for election predictions because these states, with their historically close voting margins, often determine the overall outcome by tipping the electoral balance toward one candidate. @tbl-battleground-states summarizes the predicted support percentages for Kamala Harris and Donald Trump in key battleground states, along with the predicted winner and the support margin. The data shows close margins in these states, with some like Arizona and Georgia leaning slightly towards Trump, while others such as Michigan and Pennsylvania favor Harris by narrow margins. The support margin column highlights the competitiveness of these states, with all margins below 2.2%, indicating highly contested races.
 
-modelsummary::modelsummary(
-  list(
-    "First model" = first_model
-  ),
-  statistic = "mad",
-  fmt = 2
-)
-```
+# Discussion {#sec-discussion}
 
-# Discussion
+In this paper, we set out to predict the support for both Kamala Harris and Donald Trump in the 2024 U.S. Presidential Election using a “polls-of-polls” approach. By aggregating multiple polls, we sought to mitigate the inherent biases present in individual surveys, creating a more accurate and balanced forecast across candidates. Our analysis was driven by a linear regression model using key predictors, such as pollster, sample size, state, and recency of the polls. After calculating predicted values from the model, we applied a weighting scheme based on each pollster’s numeric grade and pollscore, incorporating both reliability and bias. This weighted approach enabled us to produce an overall prediction of candidate support, reflecting variations across different states and polling organizations.
 
-## First discussion point {#sec-first-point}
+One key insight from our analysis is the importance of poll recency. Including recency notably increased the model’s explanatory power, with improvements in R² and reductions in RMSE compared to models without it. This underscores the dynamic nature of public opinion, where recent events can influence voter perceptions and candidate support.
 
-If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this.
+Our state-level analysis highlights close competition observed in key battleground states, emphasizing their pivotal role in the 2024 election. Our model reveals that in states like Pennsylvania, Michigan, and Wisconsin, support levels for Harris and Trump are nearly tied, reflecting the intense contest for these critical electoral votes. The predictions show that even minor shifts in support within these swing states could decisively impact the overall election outcome. This analysis shows the importance of regional polling in capturing nuanced voter sentiment and the heightened influence that battleground states hold in shaping the final results.
 
-## Second discussion point
+However, there are limitations to our approach. Our model assumes linear relationships between predictors and candidate support, which might not capture more complex or interaction-based trends. Additionally, while we weighted polls based on their numeric grades, these scores may not fully reflect each pollster’s accuracy, leaving room for improvement. Future research could explore non-linear methods, such as machine learning, to capture potential interactions between variables. Refining the weighting mechanism by considering pollster performance history or state-specific polling nuances could further enhance predictive accuracy.
 
-Please don't use these as sub-heading labels - change them to be what your point actually is.
-
-## Third discussion point
-
-## Weaknesses and next steps
-
-Weaknesses and next steps should also be included.
+In conclusion, this paper contributes to election forecasting by providing a comprehensive, weighted estimate of candidate support across both national and state levels. While our predictions provide valuable insights into potential election outcomes, the evolving nature of voter sentiment and poll accuracy reflects the need for adaptive models that account for ongoing changes in public opinion.
 
 \newpage
 
@@ -670,57 +744,141 @@ Weaknesses and next steps should also be included.
 
 # Appendix {.unnumbered}
 
-# Additional data details
+# Emerson College Polling Methodology (October 14-16, 2024)
 
-# Model details {#sec-model-details}
+## Overview
 
-## Posterior predictive check
+Emerson College Polling, also known as ECP, is a nationally-ranked polling center that aims to accurately reflect public opinion through a mixed-mode methodology [@about_ecp]. ECP conducted a survey from October 14 to 16, 2024, targeting 1,000 likely voters in the 2024 U.S. Presidential Election. The poll measured voter preferences between Kamala Harris and Donald Trump, revealing a near tie with Harris at 50% and Trump at 49% [@ecp_poll]. Appendix A takes a closer look at the methodology used by ECP for this poll.
 
-In @fig-ppcheckandposteriorvsprior-1 we implement a posterior predictive check. This shows...
+## Population, Frame, and Sample of the Poll
 
-In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. This shows...
+To conduct a poll, it is important to first define the target population, the sampling frame and the sample. Defining these elements sets a clear direction for the research and assures a clear object of research [@akman].
+
+The target population is the whole group of interest the researchers would like to make conclusions on [@def_terms]. For the poll conducted by ECP in October, the target population is likely voters in the U.S. elections [@ecp_poll]. Choosing likely voters as the target population makes the poll results more accurate as not all registered voters end up voting in the Presidential Election. In fact, the last U.S. Presidential Election in 2020 only had 66.8% of registered voters participate in the elections, which is the highest voter turnout in the 21st century [@us_census]. In ECP’s methodology, likely voters are determined by a combination of voter history, registration status, and demographic data. These factors are self-reported [@ecp_poll].
+
+The sampling frame is the part inside of the target population that has a chance to be sampled upon [@def_terms]. In ECP’s methodology, the sampling frame is the voters that are on Aristotle’s database and on the online panel provided by CINT [@about_ecp]. Aristotle is an online source of voter and consumer data that has serviced many large political campaigns, PACs and corporations both within the U.S and abroad [@aristotle]. CINT is the largest global research marketplace that connects researchers, such as Emerson, to survey respondents [@cint].
+
+The sample of a study is the part of the sampling frame that is measured and is part of the data set [@def_terms]. In the case of a poll like ECP’s, the sample is the respondents of the survey. These respondents are directly represented in the data set [@ecp_poll]. The sample size is 1,000 likely voters chosen arbitrarily from the sampling frame.
+
+## Sample Recruitment and Approach
+
+Emerson College used a mixed-mode sampling approach for its polling [@about_ecp]. Specifically, three primary modes were used to collect data for its October 14-16, 2024 poll [@ecp_poll] :
+
+-   MMS-to-web text surveys: Respondents were contacted via text messages sent to cell phones. These messages directed participants to complete the survey online. This method was conducted using voter lists provided by Aristotle.
+
+-   Interactive Voice Response (IVR): Landlines were targeted using automated phone calls where respondents could answer questions using their keypads. The contact information for this was also sourced from Aristotle’s voter lists.
+
+-   Online Panel from CINT: Emerson utilized a pre-screened, opt-in online panel of voters provided by CINT.
+
+## Advantages and Trade-offs in Mixed-Mode Sampling
+
+The multi-mode sampling approach used by ECP in this poll has many advantages. By using multiple data collection methods, ECP reduces coverage bias [@mora]. In a survey, coverage bias means there is some part of the target population that has zero chance of being part of the sample and will not be represented in the data [@def_cb]. For example, MMS-to-web surveys tend to attract responses from younger voters and individuals who rely primarily on mobile devices, capturing a segment that may otherwise be underrepresented. Interactive voice response (IVR) calls target older and rural voters, who are more inclined to use landlines. Online panels gather responses from tech-savvy individuals who prefer online engagement over other methods. Multi-mode sampling is also more cost-effective [@mora]. Automated technologies such as MMS-to-text web surveys and IVR reduce expenses compared to traditional live interviews. Lower costs allow the poll to reach a larger sample size, which also results in more accurate and representative conclusions [@large_ss]. However, using a multi-mode sampling approach also introduces a trade-off. This sampling approach introduces a measurement error [@mora]. Each method—whether IVR, web surveys, or online panels—brings its own unique biases. Combining these creates inconsistencies between respondent groups. This increases the overall margin of error by adding variability.
+
+## Non-response Handling
+
+ECP addresses non-response using a weighting system. The data is adjusted based on demographic variables like age, gender, race, education, and party affiliation, making the sample more representative of the electorate [@about_ecp]. Weights are applied to even out under- and over-represented groups, making the data more similar to the electorate [@weight].
+
+## Questionnaire Design
+
+The Emerson survey is designed with simplicity and efficiency. One of its strengths is its straightforward format, using clear and unambiguous questions. This simplicity makes the survey easy for respondents to understand. Another strength is its topical relevance. By focusing on vote preferences and demographic splits, the survey provides timely insights, especially valuable during election cycles. However, the survey has some limitations. One is its lack of nuance; while it captures basic voter preferences, it doesn’t explore the motivations or factors driving those choices in depth. Additionally, the various survey modes can affect respondent engagement with the questions, which may also influence the accuracy and depth of their answers.
+
+## Conclusion
+
+Emerson College Polling's mixed-mode methodology is effective in balancing cost with broad demographic reach. Its weighting techniques contribute to reliable and accurate results despite non-responses. While the use of multiple survey modes reduces coverage bias, other possible biases—such as lack of nuance and combined measurement errors must be considered during the analysis.
+
+# Idealized Methodology
+
+## Overview
+
+This methodology outlines an election forecasting plan with a budget of \$100,000. This survey is heavily inspired by TIPP Insights and Emerson College Polling (ECP), which are two respected polling institutions. TIPP Insights is known for accurately predicting major U.S. elections, including presidential races, by combining traditional live phone interviews with probability-based sampling [@tipp_accuracy]. Their history of reliable forecasts has made TIPP a trusted name in polling, that specializes in capturing voter sentiment and representing diverse demographics. Similarly, Emerson College is known for its mixed-mode polling strategy, which combines Interactive Voice Response (IVR) with online polling to reach both older, landline users and younger, mobile-first voters [@about_ecp].
+
+By incorporating techniques from both of these institutions, our methodology aims to achieve high accuracy and broad demographic reach, ensuring a balanced, cost-effective approach to election forecasting.
+
+## Sampling Approach
+
+This idealized methodology employs a multi-mode hybrid sampling approach, utilizing both probability-based and non-probability-based methods. Combining both methods provides both accuracy and inclusivity in polling. Overall, this method creates a more complete view of voter preferences [@baker].
+
+Probability-based methods include live phone interviews (landline and cell), as used by TIPP. Live interviews are a direct, personal method of collecting responses, with voter lists sourced from Aristotle [@tipp_methodology]. This method is effective in reaching older voters and voters with less internet connectivity. Interactive Voice Response (IVR) is also used, following Emerson’s strategy for landline users [@about_ecp], to balance costs and ensure representation of less tech-savvy populations.
+
+For non-probability methods, this approach includes MMS-to-web surveys for mobile users, inspired by Emerson’s MMS-to-web strategy [@about_ecp]. Likely voters receive multimedia messages on their cell phones encouraging them to complete an online survey, which helps reach younger, mobile-first voters. Additionally, online panel recruitment is done through CINT. This follows TIPP's online panel strategy, where a part of the survey is delivered to a pre-screened panel [@tipp_methodology].
+
+The combination of these sampling methods and collection methods ensures a more accurate representation of voter groups, including harder-to-reach populations.
+
+## Recruitment Strategy
+
+By using Aristotle’s voter lists and CINT's platform as a sampling frame, the sample consists of likely voters. Likely voters are determined based on registration status and past voting behavior [@ecp_poll]. Quota sampling would be used to match the demographic profile of the U.S. electorate. Quota sampling is a sampling method that relies on a non-random selection of units based on predetermined proportions [@def_quota]. This ensures that respondents in the sample reflect demographic variables such as age, gender, race, and education level.
+
+We would oversample key swing states like Pennsylvania, Arizona, and Georgia [@swing_state]. Key swing states are states where there is no overwhelming support for a particular candidate or political party [@barker]. The outcome in these states often determine the overall result of the election, making them critical in securing a win in the Electoral College. Oversampling these states allows a more accurate forecasting in these battlegrounds, which are critical for predicting the Electoral College outcome.
+
+## Data Validation
+
+Given that the data is collected in a hybrid format, we would use duplicate detection methods via IP addresses or phone numbers to eliminate multiple responses from the same individual. Also, we would implement attention checks to identify respondents who are not fully engaged. Both duplicate respondents and unengaged respondents bias results, and should be removed from the data set.
+
+The data will be weighted to ensure that the sample aligns with key demographics (race, gender, education) based on census data. Weights are applied to even out under- and over-represented groups, making the data more similar to the electorate [@weight].
+
+## Conclusion
+
+By combining TIPP’s live phone/IVR hybrid and Emerson College’s mixed-mode survey methods, this idealized methodology captures diverse voter demographics. It uses both probability-based and non-probability-based sampling methods to forecast the 2024 U.S. Presidential Election.
+
+A link to the survey can be found at: https://forms.gle/haGLaQBPQhrXE6Xa7
+
+# Copy of the Survey
+
+\includepdf[pages=-]{../other/surveyfiles/SurveyCopy.pdf}
+
+# Model Diagnostics
 
 ```{r}
-#| eval: true
 #| echo: false
-#| message: false
 #| warning: false
-#| label: fig-ppcheckandposteriorvsprior
-#| layout-ncol: 2
-#| fig-cap: "Examining how the model fits, and is affected by, the data"
-#| fig-subcap: ["Posterior prediction check", "Comparing the posterior with the prior"]
+#| message: false
+#| label: fig-dgplotone
 
-pp_check(first_model) +
-  theme_classic() +
-  theme(legend.position = "bottom")
-
-posterior_vs_prior(first_model) +
-  theme_minimal() +
-  scale_color_brewer(palette = "Set1") +
-  theme(legend.position = "bottom") +
-  coord_flip()
+knitr::include_graphics(here("other", "graphs", "diagnostic_plot_model3.png"))
 ```
 
-## Diagnostics
+The diagnostic plots for Model 3ni sgiven in [@fig-dgplotone]. We notice the following:
 
-@fig-stanareyouokay-1 is a trace plot. It shows... This suggests...
+1.  **Residuals vs. Fitted Plot**: This plot checks for non-linearity and heteroscedasticity. The residuals are scattered around the horizontal axis with no clear pattern, indicating that the linearity assumption is reasonable. However, there is slight spread around the center, suggesting some mild heteroscedasticity.
 
-@fig-stanareyouokay-2 is a Rhat plot. It shows... This suggests...
+2.  **Normal Q-Q Plot**: This plot assesses the normality of residuals. Most points align along the diagonal line, although there are some deviations at the tails. This suggests that the residuals are approximately normally distributed, with minor deviations in the extremes.
+
+3.  **Scale-Location Plot**: This plot further checks for homoscedasticity. The residuals appear to be evenly spread across the fitted values, supporting the homoscedasticity assumption, although slight deviations are present in certain regions.
+
+4.  **Residuals vs. Leverage Plot**: This plot identifies potential influential points. While most points have low leverage, a few points exhibit higher leverage, as indicated by their distance from the center. However, no points exceed Cook’s distance threshold, indicating no extreme outliers that would unduly influence the model.
 
 ```{r}
 #| echo: false
-#| eval: true
-#| message: false
 #| warning: false
-#| label: fig-stanareyouokay
-#| fig-cap: "Checking the convergence of the MCMC algorithm"
-#| fig-subcap: ["Trace plot", "Rhat plot"]
-#| layout-ncol: 2
+#| message: false
+#| label: fig-dgplottwo
 
-plot(first_model, "trace")
-
-plot(first_model, "rhat")
+knitr::include_graphics(here("other", "graphs", "diagnostic_plot_model6.png"))
 ```
+
+The diagnostic plots for Model 6 is given in [@fig-dgplottwo]. We notice the following:
+
+1.  **Residuals vs Fitted**: This plot suggests a fairly random spread of residuals around zero, indicating that the linearity assumption holds reasonably well. However, there is slight clustering of points in the center, which could indicate minor heteroscedasticity but is not severe.
+
+2.  **Normal Q-Q Plot**: The Q-Q plot shows that the residuals generally follow a normal distribution, with only a few deviations at the tails. This suggests that the normality assumption is mostly met, though some minor deviations in the upper tail indicate possible outliers.
+
+3.  **Scale-Location (Spread-Location) Plot**: The residuals appear randomly dispersed with no clear pattern, supporting the homoscedasticity (constant variance) assumption. However, some observations near the upper range might indicate slight variance inconsistency, though it is minimal.
+
+4.  **Residuals vs Leverage**: This plot does not show any influential outliers with high leverage that might impact the model unduly. The Cook's distance lines show that no data points exceed these thresholds, indicating that no individual observation is disproportionately influencing the model.
+
+Overall, the diagnostic plots for both model suggests that they meet the assumptions for linear regression fairly well, with minor deviations that are not expected to severely impact the model’s validity.
+
+# Code Styling
+
+The code in this paper was reviewed and formatted for consistency using lintr [@citelintr] and styler [@citestyler], ensuring readability and adherence to style standards.
+
+# Reproducibility
+
+To replicate the findings presented in this paper, users should execute the scripts available in the GitHub repository. Begin by running the 00-install_packages.R script, which installs all required packages for the analysis.
+
+# Acknowledgments
+
+We extend our gratitude to [@citeTS], which provided invaluable guidance in establishing a reproducible workflow and inspired many of the code structures used in this paper.
 
 \newpage
 
