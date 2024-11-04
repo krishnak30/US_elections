@@ -803,6 +803,7 @@ The raw data for this project, sourced from FiveThirtyEight, [@FiveThirtyEight] 
 #| warning: false
 #| message: false
 #| label: fig-dgplotone
+#| #| fig-cap: 'Diagnostic plots for Model 3'
 
 knitr::include_graphics(here("other", "graphs", "diagnostic_plot_model3.png"))
 ```
@@ -822,6 +823,7 @@ The diagnostic plots for Model 3 are given in [@fig-dgplotone]. We notice the fo
 #| warning: false
 #| message: false
 #| label: fig-dgplottwo
+#| fig-cap: 'Diagnostic plots for Model 6'
 
 knitr::include_graphics(here("other", "graphs", "diagnostic_plot_model6.png"))
 ```
