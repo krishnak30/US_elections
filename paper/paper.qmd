@@ -543,8 +543,7 @@ model_summary <- tibble::tibble(
 
 # Display the table using kable
 model_summary %>%
-  kable(caption = "Model Summary with Included Variables", digits = 3) %>%
-  kable_styling(full_width = FALSE)
+  kable(caption = "Model Summary with Included Variables", digits = 3)
 
 ```
 
