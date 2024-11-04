@@ -539,6 +539,136 @@ model_summary %>%
 
 @tbl-summary summarizes the performance metrics for three models with progressively added variables. Model 1, which includes only Pollster and Sample Size, achieves an R² of 0.375, indicating that these variables alone explain about 37.5% of the variance in candidate support. Model 2 incorporates State as an additional predictor, resulting in a substantial improvement, with an R² of 0.720 and a reduction in both AIC and RMSE, showing better model fit and predictive accuracy. Model 3 further adds Recency, which increases the R² to 0.774 and decreases the RMSE to 1.836, indicating enhanced explanatory power and prediction accuracy. This progression highlights the benefit of adding contextual variables like State and Recency to better capture the complexities of polling data.
 
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| include: false
+
+model6 <- readRDS(here("models/model6.rds"))
+
+# Subset the data for each candidate
+harris_data <- analysis_data %>%
+  filter(candidate_name == "Kamala Harris")
+
+trump_data <- analysis_data %>%
+  filter(candidate_name == "Donald Trump")
+
+# Create model summary data for Harris
+modelsumharris <- harris_data %>%
+  mutate(
+    fit = predict(model3, newdata = ., interval = "confidence"),
+    lower = fit[, "lwr"],
+    upper = fit[, "upr"],
+    fitted = fit[, "fit"]
+  ) %>%
+  select(end_date, fitted, lower, upper, state)  # Include state column
+
+# Create model summary data for Trump
+modelsumtrump <- trump_data %>%
+  mutate(
+    fit = predict(model6, newdata = ., interval = "confidence"),
+    lower = fit[, "lwr"],
+    upper = fit[, "upr"],
+    fitted = fit[, "fit"]
+  ) %>%
+  select(end_date, fitted, lower, upper, state)  # Include state column
+
+# Combine the datasets for plotting
+modelsumharris$candidate_name <- "Kamala Harris"
+modelsumtrump$candidate_name <- "Donald Trump"
+combined_data <- bind_rows(modelsumharris, modelsumtrump)
+```
+```{r}
+
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-modsum1
+#| eval: true
+#| fig-cap: 'Model summaries for Kamala Harris and Donald Trump at the national level using polling data.'
+
+ggplot(combined_data, aes(x = as.Date(end_date), y = fitted, color = candidate_name, fill = candidate_name)) +
+  geom_smooth(method = "loess", se = TRUE, span = 0.2) +
+  scale_color_manual(values = c("Kamala Harris" = "steelblue", "Donald Trump" = "indianred")) +
+  scale_fill_manual(values = c("Kamala Harris" = "steelblue", "Donald Trump" = "indianred")) +
+  labs(x = "Date", y = "Support (%)") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+    legend.title = element_blank(),
+    axis.text.x = element_text(angle = 0),
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  facet_wrap(~ candidate_name, scales = "free_y")
+
+```
+```{r}
+
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-modsum2
+#| eval: true 
+#| fig-cap: 'Model summary of Donald Trump’s support trends across key battleground states.'
+# Define the target states
+target_states <- c("Arizona", "Georgia", "Michigan", "Pennsylvania", "Wisconsin", "North Carolina", "Nevada")
+
+# Filter combined_data for Donald Trump, exclude national data, and limit to target states
+trump_state_data <- combined_data %>%
+  filter(candidate_name == "Donald Trump", state %in% target_states)
+
+# Plotting
+ggplot(trump_state_data, aes(x = as.Date(end_date), y = fitted, fill = candidate_name)) +
+  geom_smooth(method = "loess", se = TRUE, span = 0.2, color = "indianred") +
+  scale_fill_manual(values = c("Donald Trump" = "indianred")) +
+  labs(x = "Date", y = "Support (%)",
+       title = "Support trends for Donald Trump across different states") +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    axis.text.x = element_text(angle = 0),
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  facet_wrap(~ state, scales = "free_y")  # Separate subplots for each state
+
+```
+```{r}
+
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-modsum1
+#| fig-cap: 'Model summary of Kamala Harris’s support trends across key battleground states.'
+# Define the target states
+target_states <- c("Arizona", "Georgia", "Michigan", "Pennsylvania", "Wisconsin", "North Carolina", "Nevada")
+
+# Filter combined_data for Kamala Harris and limit to target states
+harris_state_data <- combined_data %>%
+  filter(candidate_name == "Kamala Harris", state %in% target_states)
+
+# Plotting
+ggplot(harris_state_data, aes(x = as.Date(end_date), y = fitted, fill = candidate_name)) +
+  geom_smooth(method = "loess", se = TRUE, span = 0.2, color = "steelblue") +
+  scale_fill_manual(values = c("Kamala Harris" = "steelblue")) +
+  labs(x = "Date", y = "Support (%)",
+       title = "Support trends for Kamala Harris across different states") +
+  theme_minimal() +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    axis.text.x = element_text(angle = 0),
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10))
+  ) +
+  facet_wrap(~ state, scales = "free_y")  # Separate subplots for each state
+
+```
+
+
 ## Prediction
 
 To predict Kamala Harris' overall support, we used a weighted average approach based on the quality of each poll. The weights are calculated using each poll's `numeric_grade`, which reflects the reliability and transparency of the polling methodology.
