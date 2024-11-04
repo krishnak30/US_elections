@@ -9,7 +9,7 @@ thanks: "Code and data are available at: [https://github.com/krishnak30/US_elect
 date: today
 date-format: long
 abstract: >
-  This study employs a polls-of-polls approach to predict support for Kamala Harris and Donald Trump in the 2024 U.S. Presidential Election, with a focus on key battleground states to forecast the likely winner of the electoral college. By aggregating multiple polls and applying a weighted linear regression model with predictors like pollster reliability, sample size, state, and recency, we estimate a higher national support for Trump relative to Harris. Our analysis also reveals a close competition in battleground states, with Trump holding a narrow lead in Arizona, Georgia, and North Carolina, while Harris leads in Michigan, Nevada, Pennsylvania, and Wisconsin. These findings underscore the value of aggregating polls over relying on individual surveys, offering a more comprehensive and robust forecast of electoral outcomes.
+  This study employs a poll-of-polls approach to predict support for Kamala Harris and Donald Trump in the 2024 U.S. Presidential Election, with a focus on key battleground states to forecast the likely winner of the electoral college. By aggregating multiple polls and applying a weighted linear regression model with predictors like pollster reliability, sample size, state, and recency, we estimate a higher national support for Trump relative to Harris. Our analysis also shows a close competition in battleground states, with Trump holding a narrow lead in Arizona, Georgia, and North Carolina, while Harris leads in Michigan, Nevada, Pennsylvania, and Wisconsin. These findings underscore the value of aggregating polls over relying on individual surveys, offering a robust forecast of electoral outcomes.
 format: 
   pdf:
     number-sections: true
@@ -51,7 +51,7 @@ While individual polls provide snapshots of public opinion, they are often subje
 
 The estimand of this study is the level of voter support for each candidate, Kamala Harris and Donald Trump, as reported across multiple polls.To estimate this, we developed a regression model incorporating variables such as pollster, sample size, state, and recency of the poll, with an emphasis on accurately capturing state-level dynamics. Our findings indicate that, on a national level, support between Kamala Harris and Donald Trump is closely balanced. Harris’s estimated national support stands close to 48%, while Trump’s support is slightly higher, around 49%. We found that Trump holds a marginal lead in battleground states like Arizona and Georgia, with a support margin slightly above 1%. In contrast, Harris shows narrow leads in Michigan, Nevada, Pennsylvania, and Wisconsin, with her support margin in Wisconsin reaching over 2%, making it her strongest battleground. North Carolina emerges as one of the tightest races, with Trump leading by only 0.26%, underscoring the competitive nature of these regions.
 
-This paper contributes to the field of election forecasting by emphasizing the importance of poll quality and recency in prediction models. By focusing on battleground states where the support margins are particularly close, our approach highlights the areas where campaign strategies and voter turnout efforts may have the greatest impact. This could provides insights for political strategists, media analysts, and the general public by offering a nuanced view of the electoral landscape.
+This paper contributes to the field of election forecasting by emphasizing the importance of poll quality and recency in prediction models. By focusing on battleground states where the support margins are particularly close, our approach highlights the areas where campaign strategies and voter turnout efforts may have the greatest impact. This analyasis is useful for political strategists, media analysts, and the general public by offering a view of the electoral landscape.
 
 This paper is organized as follows: In Section @sec-data, we clean the data, explore summary statistics, plot distributions of key variables, and examine relationships between variables. In Section @sec-model, we discuss our forecasting approach, model selection, justification for the chosen model, and the mechanism of deriving poll weights based on pollster reliability, ultimately presenting our predictions. In Section @sec-discussion, we address the broader implications of our findings, acknowledge limitations, and suggest directions for future work. [Appendix -@sec-pollster-meth] contains a closer look at the methodology used by Emerson College Polling for its poll conducted from October 14 t0 16, 2024. [Appendix -@sec-idealized-meth] contains a discussion about an idealized methodology that we would use to forecast the 2024 U.S. Presidential Election if we had a budget of  \$100,000.
 
@@ -61,7 +61,7 @@ This paper is organized as follows: In Section @sec-data, we clean the data, exp
 
 The raw data for this project, sourced from FiveThirtyEight, [@FiveThirtyEight] underwent a series of cleaning steps to prepare it for analysis. Initially, duplicate rows were removed to ensure that only unique observations remained, facilitated by the `janitor` package [@janitor]. A new binary variable, 'national', was created to indicate whether a poll was conducted at the national or state level. Missing values in the 'state' column were replaced with "Not Applicable," and numeric grades were evaluated to filter out low-quality pollsters, keeping only those with a numeric grade above 1. This cutoff was selected to retain mid to high-level pollsters for more reliable results. These steps were performed using functions from the `tidyverse` package [@tidy]. Dates were also standardized and converted into a proper format for analysis using the same package. Polls related to Kamala Harris were retained for further analysis, and percentage support values were transformed into actual numbers of supporters based on sample size. Pollster counts below five were excluded to focus on more reliable data sources. Polls regarding Kamala Harris were filtered to include only those conducted after her official candidacy announcement on July 21, 2024, ensuring the data reflects post-announcement public sentiment.The cleaned dataset was saved in Parquet format for efficient storage and retrieval, using the `arrow` package [@arrow].
 
-## Explorations of Variables of Interest
+## Variables of Interest
 
 ### Summary Statistics of Key Variables and Measurement Method
 
@@ -140,7 +140,7 @@ kable(top_pollsters, format = "markdown")
 #| message: false
 #| echo: false
 #| label: fig-ster
-#| fig-cap: 'Support distribution for Kamala Harris and Donald Trump by major pollsters, highlighting variability in reported support across organizations and the value of aggregating multiple polls for balanced insights.'
+#| fig-cap: 'Support distribution for Kamala Harris and Donald Trump by major pollsters, highlighting variability in reported support across organizations and the value of aggregating multiple polls.'
 
 # Filter the data for top 5 pollsters, if needed
 top_pollsters <- analysis_data %>%
@@ -232,7 +232,7 @@ combined_plot
 
 ### Distribution of Polls by Poll Type and Candidate
 
-@fig-pie illustrates the distribution of polls between candidates and poll types. The left chart shows that the majority of polls are conducted at the state level, with a smaller portion being national. The right chart shows that polling is almost evenly split between Kamala Harris and Donald Trump. This distribution underscores the model’s balanced approach to capturing state-level nuances as well as broader national trends, providing a comprehensive view of candidate support across different contexts
+@fig-pie illustrates the distribution of polls between candidates and poll types. The left chart shows that the majority of polls are conducted at the state level, with a smaller portion being national. The right chart shows that polling is almost evenly split between Kamala Harris and Donald Trump. This distribution underscores the model’s balanced approach to capturing state-level differences as well as broader national trends, providing a view of candidate support across different contexts
 
 ```{r, fig.width = 12, fig.height = 4}
 #| warning: false
@@ -406,15 +406,25 @@ map_data <- us_states %>%
 
 
 # Filter out Alaska, Hawaii, and Puerto Rico using subset
-map_data_continental <- subset(map_data, !NAME %in% c("Alaska", "Hawaii", "Puerto Rico"))
-
+map_data_continental <-
+  subset(map_data,!NAME %in% c("Alaska", "Hawaii", "Puerto Rico"))
 
 ggplot(map_data_continental) +
-  geom_sf(aes(fill = kamala_proportion * 100), color = "white", size = 0.2) +
-  geom_text(aes(label = STUSPS, geometry = geometry), 
-            stat = "sf_coordinates", color = "black", size = 3) +  # Adjust color and size as needed
-  scale_fill_distiller(palette = "RdBu", direction = 1, na.value = "grey", 
-                       name = "Harris's Mean Support in Polls (%)") +
+  geom_sf(aes(fill = kamala_proportion * 100),
+          color = "white",
+          size = 0.2) +
+  geom_text(
+    aes(label = STUSPS, geometry = geometry),
+    stat = "sf_coordinates",
+    color = "black",
+    size = 3
+  ) +  # Adjust color and size as needed
+  scale_fill_distiller(
+    palette = "RdBu",
+    direction = 1,
+    na.value = "grey",
+    name = "Harris's Mean Support in Polls (%)"
+  ) +
   theme_minimal() +
   theme(
     panel.grid = element_blank(),
@@ -422,9 +432,7 @@ ggplot(map_data_continental) +
     axis.title = element_blank(),
     axis.ticks = element_blank(),
     aspect.ratio = 0.5  # Make the plot wider
-  ) 
-
-
+  )
 ```
 
 @fig-map1 shows the average support for Kamala Harris as a proportion relative to both Kamala Harris and Donald Trump across the continental U.S. states. States shaded in blue indicate a higher proportion of support for Harris, while red shades represent stronger support for Trump, with color intensity reflecting the support margin. Gray-shaded states lack sufficient polling data.
@@ -437,7 +445,7 @@ In key swing states, such as Pennsylvania, Michigan, and Arizona, we observe a b
 
 The polls of polls methodology is widely used in election prediction as it aggregates multiple polls to provide a more reliable estimate of voter support, rather than relying on any single poll. The goal is to reduce errors and biases present in individual polls by using a weighted average of many different polls.
 
-In our approach, we will employ linear modeling of voter support percentage (pct) on pollster and other independent variables such as sample size, poll recency, and poll scope (state vs. national). This will allow us to smooth out the inherent noise, biases, and variability across different pollsters. Once we obtain the predicted values from our model, we will weight these predictions based on the numeric grade (quality score) of each pollster to calculate an overall national estimate of the outcome. Additionally, we will separately compute estimates for key battleground states, where voter behavior can be more volatile and pivotal in deciding the final outcome of the election. This approach helps us capture both national trends and critical state-level dynamics.
+In our approach, we will employ linear modeling of voter support percentage (pct) on pollster and other independent variables such as sample size, poll recency, and poll scope (state vs. national). This will allow us to smooth out the inherent noise, biases, and variability across different pollsters. Once we obtain the predicted values from our model, we will weight these predictions based on the numeric grade (quality score) of each pollster to calculate an overall national estimate of the outcome. Additionally, we will separately compute estimates for key battleground states, where voter behavior can be more volatile and pivotal in deciding the final outcome of the election. This approach helps us capture both national trends and state-level dynamics.
 
 ## Model
 
@@ -479,12 +487,13 @@ Where
 #| message: false
 #| label: fig-causal-model
 #| fig-cap: "Factors influencing candidate support, with poll attributes (Pollster, Sample Size, State, Recency) as direct contributors and unobserved confounders representing potential biases in polling results."
+
 # Load and display the saved PNG
 knitr::include_graphics(here("other", "graphs", "polls_of_polls_dag.png"))
 
 ```
 
-In our model, we aim to smooth out discrepancies and biases across various polling organizations using a polls-of-polls approach. Given the potential for individual pollsters to introduce systematic differences—due to variations in sampling methods, question phrasing, and historical leanings—our model includes a pollster variable to adjust for these organization-specific biases. This allows us to capture an aggregated view of public support that is less susceptible to the idiosyncrasies of any single poll. Furthermore, we incorporate sample size as a predictor, as polls with larger samples tend to yield more stable and reliable results, reducing random fluctuations caused by smaller samples. The state variable accounts for regional political differences, ensuring that the model captures varying levels of support across geographic and demographic groups, which is crucial for understanding the nuanced political landscape. Additionally, recency is included to prioritize more recent polls, as public opinion can shift rapidly in response to political events, and recent data is generally more reflective of current sentiment. By integrating these factors, our model seeks to produce a more stable and comprehensive measure of candidate support, reducing noise from individual poll discrepancies and focusing on a balanced, up-to-date aggregation of polling data.
+In our model, we aim to smooth out discrepancies and biases across various polling organizations using a polls-of-polls approach. Given the potential for individual pollsters to introduce systematic differences—due to variations in sampling methods, question phrasing, and historical leanings—our model includes a pollster variable to adjust for these organization-specific biases. This allows us to capture an aggregated view of public support that is less susceptible to the idiosyncrasies of any single poll. Furthermore, we incorporate sample size as a predictor, as polls with larger samples tend to yield more stable and reliable results, reducing random fluctuations caused by smaller samples. The state variable accounts for regional political differences, ensuring that the model captures varying levels of support across geographic and demographic groups, which is important for understanding the political landscape. Additionally, recency is included to prioritize more recent polls, as public opinion can shift in response to political events, and recent data is generally more reflective of current sentiment. By integrating these factors, our model seeks to produce a more stable measure of candidate support, reducing noise from individual poll discrepancies and focusing on a balanced, up-to-date aggregation of polling data.
 
 We opted for a linear model due to its capacity to quantify the marginal effects of each predictor (pollster, sample size, state, and recency) on candidate support in a straightforward manner. This structure is well-suited to our polls-of-polls approach, as it allows for the estimation of fixed effects that can control for systematic biases across pollsters, while accommodating the influence of sample size and recency as continuous variables. All modeling was conducted using the base R package [@citeR], specifically utilizing the lm() function from the stats package for linear regression analysis.
 
@@ -495,7 +504,9 @@ We opted for a linear model due to its capacity to quantify the marginal effects
 #| warning: false
 #| message: false
 #| label: tbl-summary
-#| tbl-cap: "Model performance summary showing improved fit and accuracy as State and Recency are added, with R² increasing from 0.375 in Model 1 to 0.774 in Model 3, and RMSE decreasing from 3.053 to 1.836." 
+#| tbl-cap: "Model performance summary showing improved fit and accuracy as State and Recency are added, with R² increasing from 0.375 in Model 1 to 0.774 in Model 3, and RMSE decreasing from 3.053 to 1.836."
+
+
 # Load your models
 model1 <- readRDS(here("models/model1.rds"))
 model2 <- readRDS(here("models/model2.rds"))
@@ -504,12 +515,30 @@ model3 <- readRDS(here("models/model3.rds"))
 # Extract summary statistics and add variables included in each model
 model_summary <- tibble::tibble(
   Model = c("Model 1", "Model 2", "Model 3"),
-  Variables = c("Pollster, Sample Size", "Pollster, Sample Size, State", "Pollster, Sample Size, State, Recency"),
-  `R²` = c(summary(model1)$r.squared, summary(model2)$r.squared, summary(model3)$r.squared),
-  `Adjusted R²` = c(summary(model1)$adj.r.squared, summary(model2)$adj.r.squared, summary(model3)$adj.r.squared),
+  Variables = c(
+    "Pollster, Sample Size",
+    "Pollster, Sample Size, State",
+    "Pollster, Sample Size, State, Recency"
+  ),
+  `R²` = c(
+    summary(model1)$r.squared,
+    summary(model2)$r.squared,
+    summary(model3)$r.squared
+  ),
+  `Adjusted R²` = c(
+    summary(model1)$adj.r.squared,
+    summary(model2)$adj.r.squared,
+    summary(model3)$adj.r.squared
+  ),
   `AIC` = c(AIC(model1), AIC(model2), AIC(model3)),
   `BIC` = c(BIC(model1), BIC(model2), BIC(model3)),
-  `RMSE` = c(sqrt(mean(residuals(model1)^2)), sqrt(mean(residuals(model2)^2)), sqrt(mean(residuals(model3)^2)))
+  `RMSE` = c(sqrt(mean(
+    residuals(model1) ^ 2
+  )), sqrt(mean(
+    residuals(model2) ^ 2
+  )), sqrt(mean(
+    residuals(model3) ^ 2
+  )))
 )
 
 # Display the table using kable
@@ -555,7 +584,7 @@ $$
 
 ### Comparing Overall Weighted Support Across All Polls
 
-Aggregating support across all polls and applying our weighted approach, we estimate the overall support for each candidate. The weights, calculated based on both the poll's numeric grade and poll score, ensure that higher-quality polls with less bias contribute more to our estimates. Based on this approach, Kamala Harris has an estimated overall weighted support of around 47.77%, while Donald Trump stands at around 46.31%. This aggregation provides a comprehensive view, taking into account the varied methodologies and sampling qualities of different polling organizations.
+Aggregating support across all polls and applying our weighted approach, we estimate the overall support for each candidate. The weights, calculated based on both the poll's numeric grade and poll score, ensure that higher-quality polls with less bias contribute more to our estimates. Based on this approach, Kamala Harris has an estimated overall weighted support of around 47.77%, while Donald Trump stands at around 46.31%. This aggregation takes into account the varied methodologies and sampling qualities of different polling organizations.
 
 ```{r}
 #| warning: false
@@ -570,35 +599,40 @@ kamala_data <- analysis_data %>%
   filter(candidate_name == "Kamala Harris") %>%
   mutate(
     weight = numeric_grade * (max(analysis_data$pollscore, na.rm = TRUE) - pollscore) /
-             sum(numeric_grade * (max(analysis_data$pollscore, na.rm = TRUE) - pollscore), na.rm = TRUE),
-    fitted_values = fitted(model3),  # Replace this with actual fitted values for Kamala
+      sum(numeric_grade * (
+        max(analysis_data$pollscore, na.rm = TRUE) - pollscore
+      ), na.rm = TRUE),
+    fitted_values = fitted(model3),
+    # Replace this with actual fitted values for Kamala
     weighted_pct = fitted_values * weight  # Calculate weighted percentage for Kamala
   )
 
 # Calculate the overall weighted prediction for Kamala Harris
-kamala_weighted_support <- sum(kamala_data$weighted_pct, na.rm = TRUE)
+kamala_weighted_support <-
+  sum(kamala_data$weighted_pct, na.rm = TRUE)
 
 # Step 2: Subset data for Donald Trump, calculate weights, join with fitted values from model6, and calculate weighted_pct
 trump_data <- analysis_data %>%
   filter(candidate_name == "Donald Trump") %>%
   mutate(
     weight = numeric_grade * (max(analysis_data$pollscore, na.rm = TRUE) - pollscore) /
-             sum(numeric_grade * (max(analysis_data$pollscore, na.rm = TRUE) - pollscore), na.rm = TRUE),
-    fitted_values = fitted(model6),  # Replace this with actual fitted values for Trump
+      sum(numeric_grade * (
+        max(analysis_data$pollscore, na.rm = TRUE) - pollscore
+      ), na.rm = TRUE),
+    fitted_values = fitted(model6),
+    # Replace this with actual fitted values for Trump
     weighted_pct = fitted_values * weight  # Calculate weighted percentage for Trump
   )
 
 # Calculate the overall weighted prediction for Donald Trump
 trump_weighted_support <- sum(trump_data$weighted_pct, na.rm = TRUE)
-
-
 ```
 
 ### State-Level Predictions
 
 In this section, we examine the predicted support for Kamala Harris and Donald Trump within each state, based on our weighted approach. By aggregating poll results within each state and applying weights that adjust for poll quality and bias, we can estimate candidate support with a more localized perspective. This allows us to identify state-by-state competition and highlight key battleground states where the margins are close.
 
-For each state, we compare the predicted support percentages and determine the projected winner based on which candidate has higher weighted support. Additionally, we calculate the margin of difference between the candidates, which can provide insights into how close each state’s race is.
+For each state, we compare the predicted support percentages and determine the projected winner based on which candidate has higher weighted support. We also calculate the margin of difference between the candidates, which shows how close each state’s race is.
 
 ```{r}
 #| warning: false
@@ -613,10 +647,8 @@ kamala_data_a2 <- analysis_data %>%
   filter(candidate_name == "Kamala Harris") %>%
   mutate(fitted_values = fitted(model3)) %>%  # Add fitted values from model 3 for Kamala Harris
   group_by(state) %>%
-  mutate(
-    weight = numeric_grade * (max_pollscore - pollscore) /
-             sum(numeric_grade * (max_pollscore - pollscore), na.rm = TRUE)
-  ) %>%
+  mutate(weight = numeric_grade * (max_pollscore - pollscore) /
+           sum(numeric_grade * (max_pollscore - pollscore), na.rm = TRUE)) %>%
   # Calculate the overall weighted prediction for each state
   summarize(support_kamala = sum(fitted_values * weight, na.rm = TRUE))
 
@@ -625,15 +657,14 @@ trump_data_a2 <- analysis_data %>%
   filter(candidate_name == "Donald Trump") %>%
   mutate(fitted_values = fitted(model6)) %>%  # Add fitted values from model 6 for Donald Trump
   group_by(state) %>%
-  mutate(
-    weight = numeric_grade * (max_pollscore - pollscore) /
-             sum(numeric_grade * (max_pollscore - pollscore), na.rm = TRUE)
-  ) %>%
+  mutate(weight = numeric_grade * (max_pollscore - pollscore) /
+           sum(numeric_grade * (max_pollscore - pollscore), na.rm = TRUE)) %>%
   # Calculate the overall weighted prediction for each state
   summarize(support_trump = sum(fitted_values * weight, na.rm = TRUE))
 
 # Step 3: Join the two datasets by state
-state_support_data <- left_join(kamala_data_a2, trump_data_a2, by = "state")
+state_support_data <-
+  left_join(kamala_data_a2, trump_data_a2, by = "state")
 
 # Add a new column 'winner' based on higher support values
 state_support_data <- state_support_data %>%
@@ -651,22 +682,32 @@ state_support_data <- state_support_data %>%
 #| fig-cap: "Predicted 2024 U.S. Presidential Election winner by state, with Kamala Harris-leaning states in blue, Donald Trump-leaning states in red, and states lacking sufficient polling data in gray. The map highlights traditional Democratic and Republican strongholds as well as key battleground states."
 
 # Filter out Alaska, Hawaii, and Puerto Rico from state_support_data
-map_data_continental <- subset(us_states, !NAME %in% c("Alaska", "Hawaii", "Puerto Rico"))
+map_data_continental <-
+  subset(us_states,!NAME %in% c("Alaska", "Hawaii", "Puerto Rico"))
 
 # Merge with state_support_data to add winner info
 map_data_continental <- map_data_continental %>%
-  left_join(state_support_data,  by = c("NAME" = "state")) 
+  left_join(state_support_data,  by = c("NAME" = "state"))
 
 # Define the colors for each category
-color_scale <- c("Kamala Harris" = "steelblue", "Donald Trump" = "indianred", "No Polling Data" = "grey")
+color_scale <-
+  c(
+    "Kamala Harris" = "steelblue",
+    "Donald Trump" = "indianred",
+    "No Polling Data" = "grey"
+  )
 
 # Plotting the map with ggplot2
 ggplot(map_data_continental) +
   geom_sf(aes(fill = winner), color = "white", size = 0.2) +
-  geom_text(aes(label = STUSPS, geometry = geometry), 
-            stat = "sf_coordinates", color = "black", size = 3) +  # Adjust text size as needed
+  geom_text(
+    aes(label = STUSPS, geometry = geometry),
+    stat = "sf_coordinates",
+    color = "black",
+    size = 3
+  ) +  # Adjust text size as needed
   scale_fill_manual(
-    values = color_scale, 
+    values = color_scale,
     na.value = "grey",
     name = "2024 Election Winner",
     labels = c("Kamala Harris", "Donald Trump", "No Polling Data")
@@ -679,12 +720,11 @@ ggplot(map_data_continental) +
     axis.ticks = element_blank(),
     aspect.ratio = 0.5  # Adjust the aspect ratio to make the map wider
   ) 
-
 ```
 
 @fig-map2 presents the predicted winner of the 2024 U.S. Presidential Election by state based on aggregated polling data, with red representing states projected to favor Kamala Harris and blue indicating those favoring Donald Trump. Notably, traditional Democratic strongholds in the Northeast and West Coast, such as California, New York, and Washington, show solid support for Harris. Conversely, traditional Republican states, including Texas, Florida, and much of the South, show strong support for Trump.
 
-Swing states, like Pennsylvania, Michigan, and Wisconsin, are predominantly leaning toward Harris, indicating a possible advantage for her in these key battlegrounds, although other typical swing states like Arizona and Georgia lean toward Trump. Gray-shaded states lack sufficient polling data to make a prediction, reflecting areas of data scarcity in the model's projections. This visualization highlights the geographical and political divides across the U.S., as well as the critical role swing states play in determining the election outcome.
+Swing states, like Pennsylvania, Michigan, and Wisconsin, are predominantly leaning toward Harris, indicating a possible advantage for her in these key battlegrounds, although other typical swing states like Arizona and Georgia lean toward Trump. Gray-shaded states lack sufficient polling data to make a prediction, reflecting areas of data scarcity in the model's projections. This visualization highlights the geographical and political divides across the U.S., as well as the importance of swing states play in election outcome.
 
 ```{r}
 #| echo: false
@@ -694,7 +734,16 @@ Swing states, like Pennsylvania, Michigan, and Wisconsin, are predominantly lean
 #| tbl-cap: "Predicted support for Kamala Harris and Donald Trump across key battleground states, indicating the winner and the support margin (%) in each state."
 
 # Define battleground states based on provided list
-battleground_states <- c("Pennsylvania", "Michigan", "North Carolina", "Wisconsin", "Nevada", "Arizona", "Georgia")
+battleground_states <-
+  c(
+    "Pennsylvania",
+    "Michigan",
+    "North Carolina",
+    "Wisconsin",
+    "Nevada",
+    "Arizona",
+    "Georgia"
+  )
 
 # Display the table of battleground states with adjusted column names
 battleground_table <- state_support_data %>%
@@ -714,10 +763,9 @@ battleground_table <- state_support_data %>%
 
 # Display the table using kable
 knitr::kable(battleground_table)
-
 ```
 
-USAFacts [@usafacts], FiveThirtyEight [@FiveThirtyEight] and many other polling websites are calling Arizona, Georgia, Michigan, Pennsylvania, Wisconsin, North Carolina, Nevada the 'swing states' of the 2024 presidential election. Swing states are crucial for election predictions because these states, with their historically close voting margins, often determine the overall outcome by tipping the electoral balance toward one candidate. @tbl-battleground-states summarizes the predicted support percentages for Kamala Harris and Donald Trump in key battleground states, along with the predicted winner and the support margin. The data shows close margins in these states, with some like Arizona and Georgia leaning towards Trump, while others such as Michigan and Pennsylvania favor Harris by narrow margins. The support margin column highlights the competitiveness of these states, with all margins below 2.2%.
+USAFacts [@usafacts], FiveThirtyEight [@FiveThirtyEight] and many other polling websites are calling Arizona, Georgia, Michigan, Pennsylvania, Wisconsin, North Carolina, Nevada the 'swing states' of the 2024 presidential election. Swing states are important for election predictions because these states, with their historically close voting margins, often determine the overall outcome by tipping the electoral balance toward one candidate. @tbl-battleground-states summarizes the predicted support percentages for Kamala Harris and Donald Trump in key battleground states, along with the predicted winner and the support margin. The data shows close margins in these states, with some like Arizona and Georgia leaning towards Trump, while others such as Michigan and Pennsylvania favor Harris by narrow margins. The support margin column highlights the competitiveness of these states, with all margins below 2.2%.
 
 # Discussion {#sec-discussion}
 
@@ -725,9 +773,9 @@ In this paper, we set out to predict the support for both Kamala Harris and Dona
 
 One key insight from our analysis is the importance of poll recency. Including recency notably increased the model’s explanatory power, with improvements in R² and reductions in RMSE compared to models without it. This underscores the dynamic nature of public opinion, where recent events can influence voter perceptions and candidate support.
 
-Our state-level analysis highlights close competition observed in key battleground states, emphasizing their pivotal role in the 2024 election. Our model reveals that in states like Pennsylvania, Michigan, and Wisconsin, support levels for Harris and Trump are nearly tied, reflecting the intense contest for these critical electoral votes. The predictions show that even minor shifts in support within these swing states could decisively impact the overall election outcome. This analysis shows the importance of regional polling in capturing nuanced voter sentiment and the heightened influence that battleground states hold in shaping the final results.
+Our state-level analysis highlights close competition observed in key battleground states, emphasizing their pivotal role in the 2024 election. Our model shows that in states like Pennsylvania, Michigan, and Wisconsin, support levels for Harris and Trump are nearly tied, reflecting the intense contest for these electoral votes. The predictions show that even minor shifts in support within these swing states could decisively impact the overall election outcome. This analysis shows the importance of regional polling in capturing voter sentiment and the heightened influence that battleground states hold in shaping the final results.
 
-However, there are limitations to our approach. Our model assumes linear relationships between predictors and candidate support, which might not capture more complex or interaction-based trends. Additionally, while we weighted polls based on their numeric grades, these scores may not fully reflect each pollster’s accuracy, leaving room for improvement. Future research could explore non-linear methods, such as machine learning, to capture potential interactions between variables. Refining the weighting mechanism by considering pollster performance history or state-specific polling nuances could further enhance predictive accuracy.
+However, there are limitations to our approach. Our model assumes linear relationships between predictors and candidate support, which might not capture more complex or interaction-based trends. Additionally, while we weighted polls based on their numeric grades, these scores may not fully reflect each pollster’s accuracy, leaving room for improvement. Future research could explore non-linear methods, such as machine learning, to capture potential interactions between variables. Refining the weighting mechanism by considering pollster performance history or state-specific polling differences could further enhance predictive accuracy.
 
 In conclusion, this paper contributes to election forecasting by providing a weighted estimate of candidate support across both national and state levels.The evolving nature of voter sentiment and poll accuracy suggests the need for adaptive models that takes in consideration ongoing changes in public opinion.
 
@@ -773,11 +821,11 @@ ECP addresses non-response using a weighting system. The data is adjusted based 
 
 ## Questionnaire Design
 
-The Emerson survey is designed with simplicity and efficiency. One of its strengths is its straightforward format, using clear and unambiguous questions. This simplicity makes the survey easy for respondents to understand. Another strength is its topical relevance. By focusing on vote preferences and demographic splits, the survey provides timely insights, especially valuable during election cycles. However, the survey has some limitations. One is its lack of nuance; while it captures basic voter preferences, it doesn’t explore the motivations or factors driving those choices in depth. Additionally, the various survey modes can affect respondent engagement with the questions, which may also influence the accuracy and depth of their answers.
+The Emerson survey is designed with simplicity and efficiency. One of its strengths is its straightforward format, using clear and unambiguous questions. This simplicity makes the survey easy for respondents to understand. Another strength is its topical relevance. By focusing on vote preferences and demographic splits, the survey provides valuable information during election cycles. However, the survey has some limitations. One is the lack of deeper understanding; while it captures basic voter preferences, it doesn’t explore the motivations or factors driving those choices in depth. Additionally, the various survey modes can affect respondent engagement with the questions, which may also influence the accuracy and depth of their answers.
 
 ## Conclusion
 
-Emerson College Polling's mixed-mode methodology is effective in balancing cost with broad demographic reach. Its weighting techniques contribute to reliable and accurate results despite non-responses. While the use of multiple survey modes reduces coverage bias, other possible biases—such as lack of nuance and combined measurement errors must be considered during the analysis.
+Emerson College Polling's mixed-mode methodology is effective in balancing cost with broad demographic reach. Its weighting techniques contribute to reliable and accurate results despite non-responses. While the use of multiple survey modes reduces coverage bias, other possible biases—such as lack of deeper understanding and combined measurement errors must be considered during the analysis.
 
 # Idealized Methodology {#sec-idealized-meth}
 
@@ -801,7 +849,7 @@ The combination of these sampling methods and collection methods ensures a more 
 
 By using Aristotle’s voter lists and CINT's platform as a sampling frame, the sample consists of likely voters. Likely voters are determined based on registration status and past voting behavior [@ecp_poll]. Quota sampling would be used to match the demographic profile of the U.S. electorate. Quota sampling is a sampling method that relies on a non-random selection of units based on predetermined proportions [@def_quota]. This ensures that respondents in the sample reflect demographic variables such as age, gender, race, and education level.
 
-We would oversample key swing states like Pennsylvania, Arizona, and Georgia [@swing_state]. Key swing states are states where there is no overwhelming support for a particular candidate or political party [@barker]. The outcome in these states often determine the overall result of the election, making them critical in securing a win in the Electoral College. Oversampling these states allows a more accurate forecasting in these battlegrounds, which are critical for predicting the Electoral College outcome.
+We would oversample key swing states like Pennsylvania, Arizona, and Georgia [@swing_state]. Key swing states are states where there is no overwhelming support for a particular candidate or political party [@barker]. The outcome in these states often determine the overall result of the election, making them key in securing a win in the Electoral College. Oversampling these states allows a more accurate forecasting in these battlegrounds, which is important for predicting the Electoral College outcome.
 
 ## Data Validation
 
