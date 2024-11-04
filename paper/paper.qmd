@@ -1,5 +1,5 @@
 ---
-title: "Forecasting the 2024 U.S. Presidential Election: An Analysis for Battleground States"
+title: "Forecasting the 2024 U.S. Presidential Election: An Analysis of Battleground States"
 subtitle: "Trump Favored Nationally, While Harris Leads in 4 of 7 Battleground States"
 author: 
   - Shamayla Durrin
@@ -45,35 +45,27 @@ analysis_data <- read_parquet(here("data/02-analysis_data/analysis_data.parquet"
 us_states <- st_read(here("data/03-mapping_data/US"))
 ```
 
-\vspace{0.7cm}
-
 # Introduction
 
-While individual polls provide snapshots of public opinion, they are often subject to biases and methodological differences. In this paper, we aim to forecast voter support for Kamala Harris and Donald Trump by aggregating data from multiple polling sources, reducing individual poll biases, and improving overall prediction accuracy. Our analysis focuses on estimating the levels of support for each candidate not only nationally but also in key swing states that are likely to be decisive in determining the electoral college outcome.
+While individual polls provide snapshots of public opinion, they are often subject to biases and methodological differences. In this paper, we aim to forecast voter support for Kamala Harris and Donald Trump by using data from multiple polling sources, reducing individual poll biases, and improving overall prediction accuracy. Our analysis focuses on estimating the levels of support for each candidate nationally while focusing on key swing states, which are likely to be decisive in determining the electoral college outcome.
 
 The estimand of this study is the level of voter support for each candidate, Kamala Harris and Donald Trump, as reported across multiple polls.To estimate this, we developed a regression model incorporating variables such as pollster, sample size, state, and recency of the poll, with an emphasis on accurately capturing state-level dynamics. Our findings indicate that, on a national level, support between Kamala Harris and Donald Trump is closely balanced. Harris’s estimated national support stands close to 48%, while Trump’s support is slightly higher, around 49%. We found that Trump holds a marginal lead in battleground states like Arizona and Georgia, with a support margin slightly above 1%. In contrast, Harris shows narrow leads in Michigan, Nevada, Pennsylvania, and Wisconsin, with her support margin in Wisconsin reaching over 2%, making it her strongest battleground. North Carolina emerges as one of the tightest races, with Trump leading by only 0.26%, underscoring the competitive nature of these regions.
 
 This paper contributes to the field of election forecasting by emphasizing the importance of poll quality and recency in prediction models. By focusing on battleground states where the support margins are particularly close, our approach highlights the areas where campaign strategies and voter turnout efforts may have the greatest impact. This could provides insights for political strategists, media analysts, and the general public by offering a nuanced view of the electoral landscape.
 
-This paper is organized as follows: In \ref{sec-data}, we clean the data, explore summary statistics, plot distributions of key variables, and examine relationships between variables. In \ref{sec-model}, we discuss our forecasting approach, model selection, justification for the chosen model, and the mechanism of deriving poll weights based on pollster reliability, ultimately presenting our predictions. Finally, in \ref{sec-discussion}, we address the broader implications of our findings, acknowledge limitations, and suggest directions for future work. 
-
-\vspace{0.7cm} 
+This paper is organized as follows: In Section @sec-data, we clean the data, explore summary statistics, plot distributions of key variables, and examine relationships between variables. In Section @sec-model, we discuss our forecasting approach, model selection, justification for the chosen model, and the mechanism of deriving poll weights based on pollster reliability, ultimately presenting our predictions. In Section @sec-discussion, we address the broader implications of our findings, acknowledge limitations, and suggest directions for future work. [Appendix -@sec-pollster-meth] contains a closer look at the methodology used by Emerson College Polling for its poll conducted from October 14 t0 16, 2024. [Appendix -@sec-idealized-meth] contains a discussion about an idealized methodology that we would use to forecast the 2024 U.S. Presidential Election if we had a budget of  \$100,000.
 
 # Data {#sec-data}
 
-\vspace{0.7cm} 
-
 ## Data Cleaning
 
-The raw data for this project, sourced from FiveThirtyEight, [@FiveThirtyEight] underwent a series of cleaning steps to prepare it for analysis. Initially, duplicate rows were removed to ensure that only unique observations remained, facilitated by the `janitor` package [@janitor]. A new binary variable, 'national', was created to indicate whether a poll was conducted at the national or state level. Missing values in the 'state' column were replaced with "Not Applicable," and numeric grades were evaluated to filter out low-quality pollsters, keeping only those with a numeric grade above 1. This cutoff was selected to retain mid to high-level pollsters for more reliable results. These steps were performed using functions from the `tidyverse` package [@tidy]. Dates were also standardized and converted into a proper format for analysis using the same package. Polls related to Kamala Harris were retained for further analysis, and percentage support values were transformed into actual numbers of supporters based on sample size. Additionally, pollster counts below five were excluded to focus on more reliable data sources. Polls regarding Kamala Harris were filtered to include only those conducted after her official candidacy announcement on July 21, 2024, ensuring the data reflects post-announcement public sentiment.The cleaned dataset was saved in Parquet format for efficient storage and retrieval, using the `arrow` package [@arrow].
+The raw data for this project, sourced from FiveThirtyEight, [@FiveThirtyEight] underwent a series of cleaning steps to prepare it for analysis. Initially, duplicate rows were removed to ensure that only unique observations remained, facilitated by the `janitor` package [@janitor]. A new binary variable, 'national', was created to indicate whether a poll was conducted at the national or state level. Missing values in the 'state' column were replaced with "Not Applicable," and numeric grades were evaluated to filter out low-quality pollsters, keeping only those with a numeric grade above 1. This cutoff was selected to retain mid to high-level pollsters for more reliable results. These steps were performed using functions from the `tidyverse` package [@tidy]. Dates were also standardized and converted into a proper format for analysis using the same package. Polls related to Kamala Harris were retained for further analysis, and percentage support values were transformed into actual numbers of supporters based on sample size. Pollster counts below five were excluded to focus on more reliable data sources. Polls regarding Kamala Harris were filtered to include only those conducted after her official candidacy announcement on July 21, 2024, ensuring the data reflects post-announcement public sentiment.The cleaned dataset was saved in Parquet format for efficient storage and retrieval, using the `arrow` package [@arrow].
 
 ## Explorations of Variables of Interest
 
 ### Summary Statistics of Key Variables and Measurement Method
 
-\vspace{0.7cm}
-
-For the purposes this analysis, a subset of variables was selected from the raw data set. Two additional variables, 'national' and 'state', were created using the existing 'state' and 'end date' variable. A short description of each variable of interest and their respective measurement methods is given below.
+For this analysis, a subset of variables was selected from the raw data set. Two additional variables, 'national' and 'state', were created using the existing 'state' and 'end date' variable. A short description of each variable of interest and their respective measurement methods is given below.
 
 -   *Pollster*: The name of the polling organization conducting the poll (e.g., YouGov, RMG Research). This variable helps adjust for poll-specific biases. Every pollster that publicly published a scientific poll about the 2024 U.S. Presidential Election is included in the data set. The value measured for this variable is the name that appears in the scientific poll [@538_methodology].
 
@@ -110,13 +102,11 @@ analysis_data |>
 
 \vspace{0.7cm}
 
-@tbl-sumstat shows that the average poll in our dataset has a numeric grade of 2.2. This suggests most polls are of moderate to high quality in terms of reliability. The mean pollscore of -0.5 suggests these polls are relatively accurate, as negative values imply reduced bias. Additionally, the large average sample size of 1908 respondents across polls provides a stable basis for our model, reducing variability and ensuring reliable predictions for candidate support.
+@tbl-sumstat shows the average poll in our data set has a numeric grade of 2.2. This suggests most polls are of moderate to high quality in terms of reliability. The mean pollscore of -0.5 suggests these polls are accurate, as negative values imply reduced bias. Also, the large average sample size of 1908 respondents across polls reduces variability and ensures reliable predictions for the candidate support model.
 
 \newpage
 
 ### Variation of Poll Quality and Support for Candiates by Pollster
-
-\vspace{0.7cm}
 
 ```{r}
 #| warning: false
@@ -143,7 +133,7 @@ kable(top_pollsters, format = "markdown")
 
 ```
 
-@tbl-topster displays the top 5 most frequent pollsters in the dataset, with each pollster’s total poll count, average pollscore (measuring reliability and historical accuracy), and average numeric grade (indicating overall quality). We observe that the most frequent pollster, Morning Consult, has a moderate pollscore and a slightly above-average numeric grade, indicating it provides fairly reliable data. However, there is variability in pollscore and numeric grade across the top pollsters, reflecting differences in quality and potential biases among them, which the model needs to adjust for to achieve accurate predictions.
+@tbl-topster shows the top 5 most frequent pollsters in the dataset, with each pollster’s total poll count, average pollscore (measuring reliability and historical accuracy), and average numeric grade (indicating overall quality). The most frequent pollster, Morning Consult, has a moderate pollscore and a slightly above-average numeric grade, suggesting the data provided is reliable. However, there is variability in pollscore and numeric grade across the top pollsters, showing differences in quality and potential biases among them.
 
 ```{r, fig.width = 12, fig.height = 6}
 #| warning: false
@@ -176,7 +166,7 @@ ggplot(filtered_data, aes(x = pct, fill = candidate_name)) +
 
 ```
 
-@fig-ster shows the distribution of support for Kamala Harris and Donald Trump by pollster, highlighting variability across different polling organizations. Morning Consult, for example, demonstrates a wide range in reported support, with more spread in Trump’s support. In contrast, Siena/NYT shows less variation, with Harris consistently leading. This variability across pollsters emphasizes the importance of aggregating multiple polls to account for organization-specific biases and ensure a more balanced view of candidate support.
+@fig-ster shows the distribution of support for Kamala Harris and Donald Trump by pollster, highlighting variability across different polling organizations. Morning Consult, for example, demonstrates a wide range in reported support, with more spread in Trump’s support. In contrast, Siena/NYT shows less variation, with Harris consistently leading. This variability across pollsters shows the importance of aggregating multiple polls to account for organization-specific biases and ensure a more balanced view of candidate support.
 
 ### Sample Size of Polls
 
@@ -204,7 +194,7 @@ ggplot(analysis_data, aes(x = sample_size)) +
 
 ```
 
-@fig-ss shows a clear right-skewed distribution. Most of the sample sizes are clustered between 0 and 3000 respondents, with a sharp peak around 1000-1500 respondents. This indicates that the majority of polls have smaller sample sizes. As sample size increases, the frequency significantly drops, with very few polls conducted with sample sizes larger than 5000, though there are a few outliers with sizes approaching 10,000 or more. This wide range in sample sizes can affect the precision of estimates across different polls.
+@fig-ss shows a clear right-skewed distribution. Most of the sample sizes are clustered between 0 and 3000 respondents, with a sharp peak around 1000-1500 respondents. This indicates that the majority of polls have smaller sample sizes. As sample size increases, the frequency decreases, with few polls conducted with sample sizes larger than 5000, though there are a few outliers with sizes approaching 10,000 or more. This wide range in sample sizes can affect the precision of estimates across different polls.
 
 ### Distribution of Numeric Grade and Pollscore of Polls
 
@@ -238,9 +228,7 @@ combined_plot
 
 ```
 
-@fig-reli shows the distribution of Numeric Grade (left) and Pollscore (right) across polling organizations. The Numeric Grade distribution shows that most pollsters are rated between 1.5 and 3, with peaks around 2.0 and 2.5, indicating a concentration of pollsters with moderate to high reliability scores. In contrast, the Pollscore distribution, where lower values indicate higher reliability, shows a range primarily between -1.5 and 0, with a notable peak around -0.5. This suggests that while many polls demonstrate relatively low bias, there is still variability in reliability across organizations. The distinction between these two metrics emphasizes the need to consider both quality (Numeric Grade) and potential systematic bias (Pollscore) when weighting polls in the model.
-
-\vspace{0.7cm}
+@fig-reli shows the distribution of Numeric Grade (left) and Pollscore (right) across polling organizations. The Numeric Grade distribution shows that most pollsters are rated between 1.5 and 3, with peaks around 2.0 and 2.5, suggesting a concentration of pollsters with moderate to high reliability scores. In contrast, the Pollscore distribution, where lower values indicate higher reliability, shows a range primarily between -1.5 and 0, with a notable peak around -0.5. This suggests that while many polls demonstrate relatively low bias, there is still variability in reliability across organizations. The distinction between these two metrics emphasizes the need to consider both quality (Numeric Grade) and potential systematic bias (Pollscore) when weighting polls in the model.
 
 ### Distribution of Polls by Poll Type and Candidate
 
@@ -297,7 +285,7 @@ combined_plot
 #| message: false
 #| echo: false
 #| label: fig-trend
-#| fig-cap: "Figure showing support trends for Kamala Harris and Donald Trump over time. Trend lines indicate slight shifts in support as the election nears, with consistent polling frequency throughout the period."
+#| fig-cap: "Support trends for Kamala Harris and Donald Trump over time. Trend lines indicate slight shifts in support as the election nears, with consistent polling frequency throughout the period."
 
 # Sample data creation (Replace this with your actual data)
 # Assuming your dataset `analysis_data` has columns: date, pct, and candidate_name
@@ -311,7 +299,7 @@ ggplot(filtered_data, aes(x = as.Date(end_date), y = pct, color = candidate_name
   geom_point(alpha = 0.3, size = 1.5) +
   geom_smooth(method = "loess", se = TRUE, span = 0.2) +
   scale_color_manual(values = c("Kamala Harris" = "steelblue", "Donald Trump" = "indianred")) +
-  labs(x = "Date", y = "Support (%)", title = "Support Trends for Kamala Harris and Donald Trump") +
+  labs(x = "Date", y = "Support (%)") +
   theme_minimal() +
   theme(
     legend.position = "right",
@@ -414,7 +402,7 @@ map_data <- us_states %>%
 #| warning: false
 #| message: false
 #| label: fig-map1
-#| fig-cap: "Map showing the proportion of support for Kamala Harris relative to Donald Trump across U.S. states. Blue indicates states where Harris has higher support, while red indicates states where Trump leads. Color intensity reflects the magnitude of support difference, with gray indicating insufficient polling data."
+#| fig-cap: "Proportion of support for Kamala Harris relative to Donald Trump across U.S. states. Blue indicates states where Harris has higher support, while red indicates states where Trump leads. Color intensity reflects the magnitude of support difference, with gray indicating insufficient polling data."
 
 
 # Filter out Alaska, Hawaii, and Puerto Rico using subset
@@ -490,7 +478,7 @@ Where
 #| warning: false
 #| message: false
 #| label: fig-causal-model
-#| fig-cap: "Directed Acyclic Graph illustrating factors influencing candidate support, with poll attributes (Pollster, Sample Size, State, Recency) as direct contributors and unobserved confounders representing potential biases in polling results."
+#| fig-cap: "Factors influencing candidate support, with poll attributes (Pollster, Sample Size, State, Recency) as direct contributors and unobserved confounders representing potential biases in polling results."
 # Load and display the saved PNG
 knitr::include_graphics(here("other", "graphs", "polls_of_polls_dag.png"))
 
@@ -717,6 +705,11 @@ battleground_table <- state_support_data %>%
     `Trump Support (%)` = support_trump,
     `Predicted Winner` = winner,
     `Support Margin (%)` = margin
+  ) %>%
+  mutate(
+    `Kamala Support (%)` = round(`Kamala Support (%)`, 2),
+    `Trump Support (%)` = round(`Trump Support (%)`, 2),
+    `Support Margin (%)` = round(`Support Margin (%)`, 2)
   )
 
 # Display the table using kable
@@ -724,11 +717,11 @@ knitr::kable(battleground_table)
 
 ```
 
-USAFacts[@usafacts],FiveThirtyEight[@FiveThirtyEight] and many other polling websites are calling Arizona, Georgia, Michigan, Pennsylvania, Wisconsin, North Carolina, Nevada the 'swing states' of the 2024 presidential election.Polling in swing states is crucial for election predictions because these states, with their historically close voting margins, often determine the overall outcome by tipping the electoral balance toward one candidate. @tbl-battleground-states summarizes the predicted support percentages for Kamala Harris and Donald Trump in key battleground states, along with the predicted winner and the support margin. The data shows close margins in these states, with some like Arizona and Georgia leaning slightly towards Trump, while others such as Michigan and Pennsylvania favor Harris by narrow margins. The support margin column highlights the competitiveness of these states, with all margins below 2.2%, indicating highly contested races.
+USAFacts [@usafacts], FiveThirtyEight [@FiveThirtyEight] and many other polling websites are calling Arizona, Georgia, Michigan, Pennsylvania, Wisconsin, North Carolina, Nevada the 'swing states' of the 2024 presidential election. Swing states are crucial for election predictions because these states, with their historically close voting margins, often determine the overall outcome by tipping the electoral balance toward one candidate. @tbl-battleground-states summarizes the predicted support percentages for Kamala Harris and Donald Trump in key battleground states, along with the predicted winner and the support margin. The data shows close margins in these states, with some like Arizona and Georgia leaning towards Trump, while others such as Michigan and Pennsylvania favor Harris by narrow margins. The support margin column highlights the competitiveness of these states, with all margins below 2.2%.
 
 # Discussion {#sec-discussion}
 
-In this paper, we set out to predict the support for both Kamala Harris and Donald Trump in the 2024 U.S. Presidential Election using a “polls-of-polls” approach. By aggregating multiple polls, we sought to mitigate the inherent biases present in individual surveys, creating a more accurate and balanced forecast across candidates. Our analysis was driven by a linear regression model using key predictors, such as pollster, sample size, state, and recency of the polls. After calculating predicted values from the model, we applied a weighting scheme based on each pollster’s numeric grade and pollscore, incorporating both reliability and bias. This weighted approach enabled us to produce an overall prediction of candidate support, reflecting variations across different states and polling organizations.
+In this paper, we set out to predict the support for both Kamala Harris and Donald Trump in the 2024 U.S. Presidential Election using a “polls-of-polls” approach ADD REFERENCE HERE. By aggregating multiple polls, we sought to mitigate the inherent biases present in individual surveys, creating a more accurate and balanced forecast across candidates. Our analysis was driven by a linear regression model using key predictors, such as pollster, sample size, state, and recency of the polls. After calculating predicted values from the model, we applied a weighting scheme based on each pollster’s numeric grade and pollscore, incorporating both reliability and bias. This weighted approach enabled us to produce an overall prediction of candidate support, reflecting variations across different states and polling organizations.
 
 One key insight from our analysis is the importance of poll recency. Including recency notably increased the model’s explanatory power, with improvements in R² and reductions in RMSE compared to models without it. This underscores the dynamic nature of public opinion, where recent events can influence voter perceptions and candidate support.
 
@@ -736,7 +729,7 @@ Our state-level analysis highlights close competition observed in key battlegrou
 
 However, there are limitations to our approach. Our model assumes linear relationships between predictors and candidate support, which might not capture more complex or interaction-based trends. Additionally, while we weighted polls based on their numeric grades, these scores may not fully reflect each pollster’s accuracy, leaving room for improvement. Future research could explore non-linear methods, such as machine learning, to capture potential interactions between variables. Refining the weighting mechanism by considering pollster performance history or state-specific polling nuances could further enhance predictive accuracy.
 
-In conclusion, this paper contributes to election forecasting by providing a comprehensive, weighted estimate of candidate support across both national and state levels. While our predictions provide valuable insights into potential election outcomes, the evolving nature of voter sentiment and poll accuracy reflects the need for adaptive models that account for ongoing changes in public opinion.
+In conclusion, this paper contributes to election forecasting by providing a weighted estimate of candidate support across both national and state levels.The evolving nature of voter sentiment and poll accuracy suggests the need for adaptive models that takes in consideration ongoing changes in public opinion.
 
 \newpage
 
@@ -744,7 +737,7 @@ In conclusion, this paper contributes to election forecasting by providing a com
 
 # Appendix {.unnumbered}
 
-# Emerson College Polling Methodology (October 14-16, 2024)
+# Emerson College Polling Methodology (October 14-16, 2024) {#sec-pollster-meth}
 
 ## Overview
 
@@ -786,7 +779,7 @@ The Emerson survey is designed with simplicity and efficiency. One of its streng
 
 Emerson College Polling's mixed-mode methodology is effective in balancing cost with broad demographic reach. Its weighting techniques contribute to reliable and accurate results despite non-responses. While the use of multiple survey modes reduces coverage bias, other possible biases—such as lack of nuance and combined measurement errors must be considered during the analysis.
 
-# Idealized Methodology
+# Idealized Methodology {#sec-idealized-meth}
 
 ## Overview
 
