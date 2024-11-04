@@ -1,24 +1,23 @@
 #### Preamble ####
-<<<<<<< HEAD
 # Purpose: Tests the structure and validity of the analysis polling results data set
 # Author: Krishna Kumar
 # Date: October 19 2024
 # Contact: krishna.kumar@mail.utoronto.ca
 # License: MIT
-# Pre-requisites: 
-  # - 00-install_packages.R
-  # - 00-simulate_data.R 
+# Pre-requisites:
+# - 00-install_packages.R
+# - 00-simulate_data.R
 
 #### Workspace setup ####
-
-#install.packages("here")
+library(tidyverse)
+library(testthat)
+library(arrow)
+library(readr)
 library(here)
 
 # Load analysis data
-analysis_data <- read_parquet(here("data/02-analysis_data/analysis_data.parquet"))
-
-head(analysis_data)
-unique(analysis_data$state)
+analysis_data <-
+  read_parquet(here("data/02-analysis_data/analysis_data.parquet"))
 
 # Check if data is loaded and is a data frame
 test_that("Data load and structure", {
@@ -32,14 +31,45 @@ test_that("No missing values in the dataset", {
 })
 
 # Define valid states
-valid_states <- c("Not Applicable", "Washington", "Oregon", "Florida", "Arizona", 
-                  "Georgia", "Michigan", "Nevada", "North Carolina", "Pennsylvania",  
-                  "Wisconsin", "Maryland", "Ohio", "Texas", "California",    
-                  "Minnesota", "New Mexico", "Montana", "Nebraska", "Utah",          
-                  "Massachusetts", "New Hampshire", "Iowa", "Nebraska CD-2", "New York",      
-                  "Virginia", "Connecticut", "Rhode Island", "Colorado", "Missouri",      
-                  "Indiana", "Alaska", "Vermont", "Maine", "Maine CD-1",    
-                  "Maine CD-2")
+valid_states <-
+  c(
+    "Not Applicable",
+    "Washington",
+    "Oregon",
+    "Florida",
+    "Arizona",
+    "Georgia",
+    "Michigan",
+    "Nevada",
+    "North Carolina",
+    "Pennsylvania",
+    "Wisconsin",
+    "Maryland",
+    "Ohio",
+    "Texas",
+    "California",
+    "Minnesota",
+    "New Mexico",
+    "Montana",
+    "Nebraska",
+    "Utah",
+    "Massachusetts",
+    "New Hampshire",
+    "Iowa",
+    "Nebraska CD-2",
+    "New York",
+    "Virginia",
+    "Connecticut",
+    "Rhode Island",
+    "Colorado",
+    "Missouri",
+    "Indiana",
+    "Alaska",
+    "Vermont",
+    "Maine",
+    "Maine CD-1",
+    "Maine CD-2"
+  )
 
 # Validate state names in 'state' column
 test_that("State names are valid", {
@@ -55,14 +85,3 @@ test_that("Population column contains valid types", {
 test_that("National column contains valid values (0 or 1)", {
   expect_true(all(analysis_data$national %in% c(0, 1)))
 })
-=======
-# Purpose: Tests the structure and validity of the analysis data set
-# Author: Krishna Kumar
-# Date: November 1 2024
-# Contact: krishna.kumar@mail.utoronto.ca
-# License: MIT
-# Pre-requisites: 
-# - 00-install_packages.R
-# - 02-clean_data.R
->>>>>>> 2e22a206dc9788f5708daba86f1e4ee71eec1e75
-

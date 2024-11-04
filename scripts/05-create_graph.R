@@ -7,7 +7,7 @@
 # Pre-requisites: 00-install_packages.R
 # Additional Notes: This chunk saves the DAG as a PNG file to the specified directory for use in the main report.
 
-# Load necessary libraries
+#### Workspace setup ####
 library(DiagrammeR)
 library(DiagrammeRsvg)
 library(rsvg)
@@ -47,20 +47,28 @@ export_svg(graph) |>
   charToRaw() |>
   rsvg::rsvg_png("other/graphs/polls_of_polls_dag.png", width = 1000)
 
-
-
 # Define the file paths using the here() function
-output_path_model3 <- here("other", "graphs", "diagnostic_plot_model3.png")
-output_path_model6 <- here("other", "graphs", "diagnostic_plot_model6.png")
+output_path_model3 <-
+  here("other", "graphs", "diagnostic_plot_model3.png")
+output_path_model6 <-
+  here("other", "graphs", "diagnostic_plot_model6.png")
 
 # Save diagnostic plot for model3
 png(output_path_model3, width = 800, height = 600)
-autoplot(model3, label.size = 3, smooth.colour = "blue", smooth.linetype = "dashed") + theme_classic()
+autoplot(
+  model3,
+  label.size = 3,
+  smooth.colour = "blue",
+  smooth.linetype = "dashed"
+) + theme_classic()
 dev.off()
 
 # Save diagnostic plot for model6
 png(output_path_model6, width = 800, height = 600)
-autoplot(model6, label.size = 3, smooth.colour = "blue", smooth.linetype = "dashed") + theme_classic()
+autoplot(
+  model6,
+  label.size = 3,
+  smooth.colour = "blue",
+  smooth.linetype = "dashed"
+) + theme_classic()
 dev.off()
-
-
