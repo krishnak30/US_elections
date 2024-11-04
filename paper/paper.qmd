@@ -10,14 +10,8 @@ date: today
 date-format: long
 abstract: >
   This study employs a poll-of-polls approach to predict support for Kamala Harris and Donald Trump in the 2024 U.S. Presidential Election, with a focus on key battleground states to forecast the likely winner of the electoral college. By aggregating multiple polls and applying a weighted linear regression model with predictors like pollster reliability, sample size, state, and recency, we estimate a higher national support for Trump relative to Harris. Our analysis also shows a close competition in battleground states, with Trump holding a narrow lead in Arizona, Georgia, and North Carolina, while Harris leads in Michigan, Nevada, Pennsylvania, and Wisconsin. These findings underscore the value of aggregating polls over relying on individual surveys, offering a robust forecast of electoral outcomes.
-format: 
-  pdf:
-    number-sections: true
-    header-includes:
-      - \usepackage{pdfpages}
-      - '\KOMAoption{captions}{tableheading}'
-      - \usepackage[margin=1in]{geometry} 
-
+format: pdf
+number-sections: true
 bibliography: references.bib
 ---
 
@@ -53,7 +47,7 @@ The estimand of this study is the level of voter support for each candidate, Kam
 
 This paper contributes to the field of election forecasting by emphasizing the importance of poll quality and recency in prediction models. By focusing on battleground states where the support margins are particularly close, our approach highlights the areas where campaign strategies and voter turnout efforts may have the greatest impact. This analyasis is useful for political strategists, media analysts, and the general public by offering a view of the electoral landscape.
 
-This paper is organized as follows: In Section @sec-data, we clean the data, explore summary statistics, plot distributions of key variables, and examine relationships between variables. In Section @sec-model, we discuss our forecasting approach, model selection, justification for the chosen model, and the mechanism of deriving poll weights based on pollster reliability, ultimately presenting our predictions. In Section @sec-discussion, we address the broader implications of our findings, acknowledge limitations, and suggest directions for future work. [Appendix -@sec-pollster-meth] contains a closer look at the methodology used by Emerson College Polling for its poll conducted from October 14 t0 16, 2024. [Appendix -@sec-idealized-meth] contains a discussion about an idealized methodology that we would use to forecast the 2024 U.S. Presidential Election if we had a budget of  \$100,000.
+This paper is organized as follows: In Section @sec-data, we show summary statistics, plot distributions of key variables, and examine relationships between variables. In Section @sec-model, we discuss our forecasting approach, model selection, justification for the chosen model, and the mechanism of deriving poll weights based on pollster reliability, ultimately presenting our predictions. In Section @sec-discussion, we address the broader implications of our findings, acknowledge limitations, and suggest directions for future work. [Appendix -@sec-data-model] contains details of the data cleaning process and model diagnostics. [Appendix -@sec-pollster-meth] contains a closer look at the methodology used by Emerson College Polling for its poll conducted from October 14 t0 16, 2024. [Appendix -@sec-idealized-meth] contains a discussion about an idealized methodology that we would use to forecast the 2024 U.S. Presidential Election if we had a budget of  \$100,000. [Appendix -@sec-copy] contains a copy of a survey that would be used in the idealized methodology. [Appendix -@sec-styling] contains specifications on code styling. [Appendix -@sec-reproducibility] contains notes on reproducibility and [Appendix -@acknowledgment] acknowledges important ressources consulted for the production of this paper.
 
 # Data {#sec-data}
 
@@ -800,6 +794,54 @@ In conclusion, this paper contributes to election forecasting by providing a wei
 
 # Appendix {.unnumbered}
 
+# Data Cleaning and Modeling {#sec-data-model}
+
+## Data Cleaning
+
+The raw data for this project, sourced from FiveThirtyEight, [@FiveThirtyEight] underwent a series of cleaning steps to prepare it for analysis. Initially, duplicate rows were removed to ensure that only unique observations remained, facilitated by the `janitor` package [@janitor]. A new binary variable, 'national', was created to indicate whether a poll was conducted at the national or state level. Missing values in the 'state' column were replaced with "Not Applicable," and numeric grades were evaluated to filter out low-quality pollsters, keeping only those with a numeric grade above 1. This cutoff was selected to retain mid to high-level pollsters for more reliable results. These steps were performed using functions from the `tidyverse` package [@tidy]. Dates were also standardized and converted into a proper format for analysis using the same package. Polls related to Kamala Harris were retained for further analysis, and percentage support values were transformed into actual numbers of supporters based on sample size. Pollster counts below five were excluded to focus on more reliable data sources. Polls regarding Kamala Harris were filtered to include only those conducted after her official candidacy announcement on July 21, 2024, ensuring the data reflects post-announcement public sentiment.The cleaned dataset was saved in Parquet format for efficient storage and retrieval, using the `arrow` package [@arrow].
+
+## Model Diagnostics
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-dgplotone
+
+knitr::include_graphics(here("other", "graphs", "diagnostic_plot_model3.png"))
+```
+
+The diagnostic plots for Model 3 is given in [@fig-dgplotone]. We notice the following:
+
+1.  **Residuals vs. Fitted Plot**: This plot checks for non-linearity and heteroscedasticity. The residuals are scattered around the horizontal axis with no clear pattern, indicating that the linearity assumption is reasonable. However, there is slight spread around the center, suggesting some mild heteroscedasticity.
+
+2.  **Normal Q-Q Plot**: This plot assesses the normality of residuals. Most points align along the diagonal line, although there are some deviations at the tails. This suggests that the residuals are approximately normally distributed, with minor deviations in the extremes.
+
+3.  **Scale-Location Plot**: This plot further checks for homoscedasticity. The residuals appear to be evenly spread across the fitted values, supporting the homoscedasticity assumption, although slight deviations are present in certain regions.
+
+4.  **Residuals vs. Leverage Plot**: This plot identifies potential influential points. While most points have low leverage, a few points exhibit higher leverage, as indicated by their distance from the center. However, no points exceed Cook’s distance threshold, indicating no extreme outliers that would unduly influence the model.
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-dgplottwo
+
+knitr::include_graphics(here("other", "graphs", "diagnostic_plot_model6.png"))
+```
+
+The diagnostic plots for Model 6 is given in [@fig-dgplottwo]. We notice the following:
+
+1.  **Residuals vs Fitted**: This plot suggests a fairly random spread of residuals around zero, indicating that the linearity assumption holds reasonably well. However, there is slight clustering of points in the center, which could indicate minor heteroscedasticity but is not severe.
+
+2.  **Normal Q-Q Plot**: The Q-Q plot shows that the residuals generally follow a normal distribution, with only a few deviations at the tails. This suggests that the normality assumption is mostly met, though some minor deviations in the upper tail indicate possible outliers.
+
+3.  **Scale-Location (Spread-Location) Plot**: The residuals appear randomly dispersed with no clear pattern, supporting the homoscedasticity (constant variance) assumption. However, some observations near the upper range might indicate slight variance inconsistency, though it is minimal.
+
+4.  **Residuals vs Leverage**: This plot does not show any influential outliers with high leverage that might impact the model unduly. The Cook's distance lines show that no data points exceed these thresholds, indicating that no individual observation is disproportionately influencing the model.
+
+Overall, the diagnostic plots for both model suggests that they meet the assumptions for linear regression fairly well, with minor deviations that are not expected to severely impact the model’s validity.
+
 # Emerson College Polling Methodology (October 14-16, 2024) {#sec-pollster-meth}
 
 ## Overview
@@ -878,61 +920,168 @@ By combining TIPP’s live phone/IVR hybrid and Emerson College’s mixed-mode s
 
 A link to the survey can be found at: https://forms.gle/haGLaQBPQhrXE6Xa7
 
-# Copy of the Survey
+# Copy of the Survey {#sec-copy}
 
-\includepdf[pages=-]{../other/surveyfiles/SurveyCopy.pdf}
+\begingroup
+\small
+**2024 U.S. Presidential Election Survey**
 
-# Model Diagnostics
+**Introduction:**
+Thank you for your interest in the 2024 U.S. Presidential Election Survey. The 2024 U.S. Presidential Election is set to take place on November 5, 2024. This election will decide the next President of the United States, a position that holds significant influence over national and global policies.
 
-```{r}
-#| echo: false
-#| warning: false
-#| message: false
-#| label: fig-dgplotone
+Your participation in this survey is entirely voluntary, and you can choose to withdraw at any time without any consequences. The information collected will be used solely for research purposes to gain insights into voter preferences and trends as we approach this important election. All responses will remain confidential and will be reported only in aggregate form.
 
-knitr::include_graphics(here("other", "graphs", "diagnostic_plot_model3.png"))
-```
+**Contact Information:**
 
-The diagnostic plots for Model 3ni sgiven in [@fig-dgplotone]. We notice the following:
+- Denise Chang, University of Toronto. Email: dede.chang@mail.utoronto.ca
 
-1.  **Residuals vs. Fitted Plot**: This plot checks for non-linearity and heteroscedasticity. The residuals are scattered around the horizontal axis with no clear pattern, indicating that the linearity assumption is reasonable. However, there is slight spread around the center, suggesting some mild heteroscedasticity.
+- Shamayla Durrin, University of Toronto. Email: shamayla.islam@mail.utoronto.ca
 
-2.  **Normal Q-Q Plot**: This plot assesses the normality of residuals. Most points align along the diagonal line, although there are some deviations at the tails. This suggests that the residuals are approximately normally distributed, with minor deviations in the extremes.
+- Krishna Kumar, University of Toronto. Email: krishna.kumar@mail.utoronto.ca
 
-3.  **Scale-Location Plot**: This plot further checks for homoscedasticity. The residuals appear to be evenly spread across the fitted values, supporting the homoscedasticity assumption, although slight deviations are present in certain regions.
+---
 
-4.  **Residuals vs. Leverage Plot**: This plot identifies potential influential points. While most points have low leverage, a few points exhibit higher leverage, as indicated by their distance from the center. However, no points exceed Cook’s distance threshold, indicating no extreme outliers that would unduly influence the model.
+**Section 1: Voting Intention**
 
-```{r}
-#| echo: false
-#| warning: false
-#| message: false
-#| label: fig-dgplottwo
+1. Consent to Participate
+By clicking the button below, I consent to participate in this survey, and I agree that my responses may be used for research purposes, including analysis and reporting on voter sentiment related to the 2024 U.S. Presidential Election. I understand that my participation is voluntary and that I can withdraw at any time without any consequences. My responses will be kept confidential and will be used only in aggregate form.
+   - I agree
 
-knitr::include_graphics(here("other", "graphs", "diagnostic_plot_model6.png"))
-```
+2. How likely are you to vote in the 2024 U.S. Presidential Election?
+   - Not likely at all
+   - Not very likely
+   - Somewhat likely
+   - Extremely likely
+   - Prefer not to say
 
-The diagnostic plots for Model 6 is given in [@fig-dgplottwo]. We notice the following:
+3. If the 2024 U.S. Presidential Election were held today, who would you vote for?
+   - Kamala Harris (Democratic Party)
+   - Donald Trump (Republican Party)
+   - Undecided
+   - Prefer not to say
 
-1.  **Residuals vs Fitted**: This plot suggests a fairly random spread of residuals around zero, indicating that the linearity assumption holds reasonably well. However, there is slight clustering of points in the center, which could indicate minor heteroscedasticity but is not severe.
+4. **If you answered "Undecided" in the previous question, who are you leaning towards?**
+   - Kamala Harris (Democratic Party)
+   - Donald Trump (Republican Party)
+   - Prefer not to say
+   
+---
 
-2.  **Normal Q-Q Plot**: The Q-Q plot shows that the residuals generally follow a normal distribution, with only a few deviations at the tails. This suggests that the normality assumption is mostly met, though some minor deviations in the upper tail indicate possible outliers.
+**Section 2: Key Issue Priorities**
 
-3.  **Scale-Location (Spread-Location) Plot**: The residuals appear randomly dispersed with no clear pattern, supporting the homoscedasticity (constant variance) assumption. However, some observations near the upper range might indicate slight variance inconsistency, though it is minimal.
+5. What are the three most important issues influencing your vote in this election? (Select up to 3)
+   - Economy
+   - Immigration
+   - Healthcare
+   - National Security
+   - Education
+   - Climate Change
 
-4.  **Residuals vs Leverage**: This plot does not show any influential outliers with high leverage that might impact the model unduly. The Cook's distance lines show that no data points exceed these thresholds, indicating that no individual observation is disproportionately influencing the model.
+6. **How has the state of the U.S. economy influenced your voting choice?
+   - Not at all
+   - Somewhat
+   - Greatly
+   - Unsure
 
-Overall, the diagnostic plots for both model suggests that they meet the assumptions for linear regression fairly well, with minor deviations that are not expected to severely impact the model’s validity.
+---
 
-# Code Styling
+**Section 3: Voting History**
+
+7. Did you vote in the 2020 U.S. Presidential Election?
+   - Yes
+   - No
+   - Prefer not to say
+
+8. If you voted in 2020, for whom did you vote?
+   - Joe Biden (Democratic Party)
+   - Donald Trump (Republican Party)
+   - Prefer not to say
+
+---
+
+**Section 4: Voter Engagement**
+
+9. How motivated are you to vote in the 2024 election compared to past elections?
+   - Less motivated
+   - About the same
+   - More motivated
+   - Unsure
+
+10. Which of the following describes your voting method?
+    - I plan to vote in person on Election Day
+    - I plan to vote early in person
+    - I plan to vote by mail
+    - I have already voted (via early voting or mail-in)
+    - I do not plan to vote
+
+---
+
+**Section 5: Demographic Questions**
+
+11. What is your age range? (years)
+    - 18-24
+    - 25-34
+    - 35-44
+    - 45-54
+    - 55-64
+    - 65 or older
+    - Prefer not to say
+
+12. What gender do you identify as?
+    - Male
+    - Female
+    - Non-binary
+    - Prefer not to say
+
+13. Which of the following best describes your race or ethnicity?
+    - White or Caucasian
+    - Black or African American
+    - Hispanic or Latino of any race
+    - Asian
+    - Other or multiple races
+
+14. What is the highest level of education you have completed?
+    - Less than high school
+    - High school diploma or GED
+    - Some college
+    - No degree
+    - Associate degree
+    - Bachelor’s degree
+    - Graduate or professional degree
+    - Prefer not to say
+
+15. What is your current employment status?
+    - Employed full-time
+    - Employed part-time
+    - Self-employed
+    - Unemployed
+    - Student
+    - Retired
+    - Prefer not to say
+    
+16. Do you consider yourself a supporter of any of the following political parties?
+    - Democratic Party
+    - Republican Party
+    - Independent
+    - Prefer not to say
+
+---
+
+**End Message**:
+
+Thank you for completing this survey! Your responses are valuable in understanding voter opinions and trends in the lead-up to the 2024 U.S. Presidential Election.
+
+\endgroup
+
+# Code Styling {#sec-styling}
 
 The code in this paper was reviewed and formatted for consistency using lintr [@citelintr] and styler [@citestyler], ensuring readability and adherence to style standards.
 
-# Reproducibility
+# Reproducibility {#sec-reproducibility}
 
 To replicate the findings presented in this paper, users should execute the scripts available in the GitHub repository. Begin by running the 00-install_packages.R script, which installs all required packages for the analysis.
 
-# Acknowledgments
+# Acknowledgments {#sec-acknowledgement}
 
 We extend our gratitude to [@citeTS], which provided invaluable guidance in establishing a reproducible workflow and inspired many of the code structures used in this paper.
 
