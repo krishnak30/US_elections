@@ -838,6 +838,40 @@ The diagnostic plots for Model 6 are given in [@fig-dgplottwo]. We notice the fo
 
 Overall, the diagnostic plots for both models suggest that they meet the assumptions for linear regression fairly well, with minor deviations that are not expected to severely impact the model’s validity.
 
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-modsum1
+#| fig-cap: 'Model summaries for Kamala Harris and Donald Trump at the national level using polling data.'
+
+# Load and display the saved PNG
+knitr::include_graphics(here("other", "graphs", "sum1.png"))
+
+```
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-modsum2
+#| fig-cap: 'Model summary of Donald Trump’s support trends across key battleground states.'
+
+# Load and display the saved PNG
+knitr::include_graphics(here("other", "graphs", "sum2.png"))
+```
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-modsum3
+#| fig-cap: 'Model summary of Kamala Harris’s support trends across key battleground states.'
+
+# Load and display the saved PNG
+knitr::include_graphics(here("other", "graphs", "sum3.png"))
+```
+
+
 # Emerson College Polling Methodology (October 14-16, 2024) {#sec-pollster-meth}
 
 ## Overview
