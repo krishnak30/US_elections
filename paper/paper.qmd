@@ -776,6 +776,18 @@ One main finding from our analysis is the importance of poll recency. Including 
 
 Our state-level analysis highlights close competition observed in key battleground states, emphasizing their pivotal role in the 2024 election. Our model shows that in states like Pennsylvania, Michigan, and Wisconsin, support levels for Harris and Trump are nearly tied, reflecting the intense contest for these electoral votes. The predictions show that even minor shifts in support within these swing states could decisively impact the overall election outcome. This analysis shows the importance of regional polling in capturing voter sentiment and the heightened influence that battleground states hold in shaping the final results.
 
+## Polling Uncertainty in 2024 Election
+
+Polling provides a general sense of public opinion, but it shouldn’t be viewed as a guaranteed predictor of election outcomes. Past U.S. elections show why polls can be misleading. For example, in 2016, polls showed Hillary Clinton in the lead. According to national polls, Clinton would have won popular vote by about 3.2% [@durand]. However, Donald Trump won battleground states, surprising many who relied on those predictions [@silver]. Trump won electoral vote with 306 votes, while Clinton had 232 [@durand].
+
+In 2020, 93% of national polls overestimated support for President Joe Biden [@kennedy]. Biden's lead was especially overestimated in states like Florida and Wisconsin, where Trump performed better than expected [@edwards]. These examples highlight the limitations of polls, especially when they can't capture late shifts in voter preferences, changes in turnout, and the difficulty of reaching a representative sample [@pew]. While polls can show trends, they are not always reliable for predicting what will happen on election day.
+
+## Trump and Harris' Path to Victory
+
+Both Donald Trump and Kamala Harris have potential paths to victory in the 2024 election. For Trump, one factor is the “shy voter” effect, where some supporters may be hesitant to share their views with pollsters due to social pressures. This can lead to polls underestimating his actual support [@woodie]. Additionally, Trump’s base includes groups that are harder to reach through standard polling, such as rural voters and individuals who avoid mainstream media [@brown]. These voters may be underrepresented in polls but can play an important role in election outcomes.
+
+On the other hand, Kamala Harris could secure a win if her campaign mobilizes specific demographics, including young people, women, and minority voters. As the first Black and South Asian woman on a presidential ticket, Harris’s candidacy may energize these groups and boost turnout among historically Democratic-leaning voters [@pew]. The growing diversity and youth of the electorate could also benefit her, especially in urban areas and battleground states [@blow]. With strong efforts in voter registration and mobilization, Harris could turn polling support into actual votes, providing her with a strong chance at victory if turnout aligns with her campaign’s goals.
+
 ## Weaknesses and Future Directions
 
 Our model assumes linear relationships between predictors and candidate support, which might not capture more complex or interaction-based trends. Additionally, while we weighted polls based on their numeric grades, these scores may not fully reflect each pollster’s accuracy, leaving room for improvement. Future research could explore non-linear methods, such as machine learning, to capture potential interactions between variables. Refining the weighting mechanism by considering pollster performance history or state-specific polling differences could further enhance predictive accuracy.
